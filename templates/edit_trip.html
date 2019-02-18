@@ -1,0 +1,38 @@
+{% extends "layout.html" %}
+
+{% block body %}
+  <main>
+    <section>
+      <div class="container">
+        <h1 class="display-4">Redigera tur</h1>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <h2 class="display-5">Ändra antalet biljetter för din bokning</h2>
+        <p class="lead">{{ trip_data.startdest }} - {{ trip_data.enddest }}.</p>
+        <p>Avgång: {{ trip_data.starttime }}<br>
+        Ankomst: {{ trip_data.arrival }}<br>
+        Resan kostar {{ trip_data.price }} kr/person.
+        <p>{{ trip_data.empty_seats }} lediga platser.<br>
+        Du har för tillfället {{ trip_data.nr_of_seats }} biljetter</p>
+        <p>Hur många platser vill du totalt ha?</p>
+
+        {% from "includes/_formhelpers.html" import render_field %}
+        <form  method="POST" action="">
+          <label for="nr_of_seats">Antal platser: </label>
+          <input type="number" name="nr_of_seats" id="nr_of_seats" value={{ trip_data.nr_of_seats }} min="1" max={{ trip_data.empty_seats + trip_data.nr_of_seats }} required><br>
+          <button type="submit" class="btn btn-success">Uppdatera</button>
+        </form>
+
+        <h2 class="display-5 mt-4">Avboka resan</h2>
+        <p>Vill du avboka din resa? Avboka i så fall på knappen nedan</p>
+        <form  method="POST" action="/cancel_trip/{{ trip_data.trip_id }}">
+          <button type="submit" class="btn btn-primary">Avboka</button>
+        </form>
+      </div>
+    </section>
+
+  </main>
+{% endblock body %}

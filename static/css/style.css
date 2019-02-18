@@ -1,0 +1,54 @@
+body {
+	position: relative;
+	font-size: 16px;
+}
+
+nav {
+	background-color: #111;
+}
+
+div.alert {
+	position: absolute;
+	top: 56;
+	width: 100%;
+}
+
+#identity {
+	text-align: right;
+	font-size: 0.95em;
+	height: 0;
+	line-height: 2.5em;
+}
+
+.display-4 {
+	font-size: 2.75em;
+	margin-top: 1rem;
+	padding-bottom: 0.5rem;
+	border-bottom: 1px solid #ccc;
+}
+
+.display-5 {
+	font-size: 2.25;
+	font-weight: 300;
+	margin-top: 0.5rem;
+}
+
+main {
+	padding: 3em 0;
+}
+
+.form-page {
+	max-width: 600px;
+	margin: 0 auto;
+}
+
+input[type="number"] {
+	border-radius: 3px;
+	border-width: 1px;
+	padding: 2px 5px;
+}
+
+button {
+    margin: 8px auto 0;
+    border: none;
+}

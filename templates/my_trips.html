@@ -1,0 +1,48 @@
+{% extends "layout.html" %}
+
+{% block body %}
+
+  <main>
+    <section>
+      <div class="container">
+        <h1 class="display-4">Mina resor</h1>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <div class="container">
+          {% if trips %}
+            <p class="lead">Nedan ser du information om de resor du har bokat</p>
+          <table class="table">
+            <tr>
+              <th>Från</th>
+              <th>Till</th>
+              <th>Avgång</th>
+              <th>Ankomst</th>
+              <th>Biljetter</th>
+            </tr>
+
+            {% for trip in trips %}
+              <tr>
+                <td>{{ trip.startdest }}</td>
+                <td>{{ trip.enddest }}</td>
+                <td>{{ trip.starttime }}</td>
+                <td>{{ trip.arrival }}</td>
+                <td>{{ trip.nr_of_seats }}</td>
+                <td><a href="/trip/{{ trip.trip_id }}" class="btn btn-success">Läs mer</a></td>
+                <td><a href="/edit_trip/{{ trip.trip_id }}" class="btn btn-primary">Redigera</a></td>
+              </tr>
+            {% endfor %}
+          </table>
+          {% else %}
+            <p class="lead">Du har inte bokat några resor.</p>
+            <a href="/trips/" class="btn btn-primary">Se turer</a>
+          {% endif %}
+
+        </div>
+      </div>
+    </section>
+  </main>
+
+{% endblock %}

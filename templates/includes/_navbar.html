@@ -1,0 +1,28 @@
+<nav class="navbar navbar-expand-md navbar-dark">
+  <div class="container">
+    <a class="navbar-brand" href="/">Mörtfors Buss</a>
+    <div class="ml-auto order-0">
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target=".dual-collapse2">
+      <span class="navbar-toggler-icon"></span>
+      </button>
+    </div>
+
+    <div class="navbar-collapse collapse order-1 order-md-0 dual-collapse2">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item"><a class="nav-link" href="/trips/">Turer</a></li>
+      </ul>
+    </div>
+
+    <div class="navbar-collapse collapse order-3 dual-collapse2">
+      <ul class="navbar-nav ml-auto">
+        {% if session.logged_in %}
+          <li class="nav-item"><a class="nav-link" href="/my_trips/">Mina bokningar</a></li>
+          <li class="nav-item"><a class="nav-link" href="/logout/">Logga ut</a></li>
+        {% else %}
+          <li class="nav-item"><a class="nav-link" href="/register/">Registrera</a></li>
+          <li class="nav-item"><a class="nav-link" href="/login/">Logga in</a></li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+</nav>

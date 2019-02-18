@@ -1,0 +1,40 @@
+{% extends "layout.html" %}
+
+{% block body %}
+
+  <main>
+    <section>
+      <div class="container">
+        <h1 class="display-4">Turer du kan boka</h1>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <table class="table">
+          <tr>
+            <th>Från</th>
+            <th>Till</th>
+            <th>Avgång</th>
+            <th>Ankomst</th>
+            <th>Pris</th>
+            <th>Lediga platser</th>
+          </tr>
+          {% for trip in trips %}
+            <tr>
+              <td>{{ trip.startdest }}</td>
+              <td>{{ trip.enddest }}</td>
+              <td>{{ trip.starttime }}</td>
+              <td>{{ trip.arrival }}</td>
+              <td>{{ trip.price }} kr</td>
+              <td>{{ trip.empty_seats }}</td>
+              <td><a href="/trip/{{ trip.trip_id }}" class="btn btn-success">Läs mer</a></td>
+            </tr>
+          {% endfor %}
+        </table>
+
+      </div>
+    </section>
+  </main>
+
+{% endblock %}
