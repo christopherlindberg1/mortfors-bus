@@ -3,11 +3,12 @@ import mysql.connector
 from passlib.hash import sha256_crypt
 from functools import wraps
 
-# Nedan importeras funktioner och klasser från egna filer
+# Imports from other project files
 from forms import Register, Login
 
 app = Flask(__name__)
 
+# Connects to a local MySQL server
 db = mysql.connector.connect(
     host = "localhost",
     user = "root",
@@ -17,7 +18,7 @@ db = mysql.connector.connect(
 
 
 def is_logged_in(f):
-    '''Används för att göra vissa sidor synliga för endast inloggade användare'''
+    """Used to make certain pages only visible to logged in users"""
     @wraps(f)
     def wrap(*args, **kwargs):
         if "logged_in" in session:
@@ -54,15 +55,19 @@ def register():
 
             cur = db.cursor(dictionary=True)
 
-            # Registrerar en ny användare
-            cur.execute("INSERT INTO customer VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s)", (email, firstname, lastname, country, city, post_nr, street, tel_nr, password))
+            # Registers a new user
+            cur.execute("""INSERT INTO customer VALUES
+                        (%s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                        (email, firstname, lastname, country,
+                         city, post_nr, street, tel_nr, password))
             db.commit()
             cur.close()
 
             flash('Du är nu registrerad och kan logga in', 'success')
             return redirect(url_for("login"))
         except:
-           flash('Det finns redan ett konto registrerat på denna e-post', 'danger')
+           flash('Det finns redan ett konto registrerat på denna e-post',
+                 'danger')
            return redirect(url_for("register"))
 
 
@@ -75,8 +80,9 @@ def login():
 
         cur = db.cursor(dictionary=True)
 
-        # Försöker hämta data om den användare som matchar den angivna epost-adressen
-        result = cur.execute("SELECT * FROM customer WHERE email = %s", [email])
+        # Pulls data about a user with a certain email, if there is one
+        result = cur.execute("SELECT * FROM customer WHERE email = %s",
+                             (email,))
         data = cur.fetchone()
         print(data)
         if len(data) != 0:
@@ -111,7 +117,7 @@ def logout():
 def trips():
     cur = db.cursor(dictionary=True)
 
-    # Hämtar data om alla tillgängliga resor
+    # Pulls data about all available trips
     cur.execute("SELECT * FROM trip ORDER BY startdest, enddest, starttime")
     trips = cur.fetchall()
     return render_template("trips.html", trips=trips)
@@ -123,8 +129,9 @@ def trip(trip_id):
     cur = db.cursor(dictionary=True)
     # Fixa join med City så att gatuadress hämtas
 
-    # Hämtar informaiton om en specifik tur
-    cur.execute("SELECT * FROM trip WHERE trip_id = %s", [trip_id])
+    # Pulls data about a specific trip
+    cur.execute("SELECT * FROM trip WHERE trip_id = %s",
+    (trip_id,))
     trip_info = cur.fetchone()
 
     if request.method == "GET":
@@ -136,19 +143,23 @@ def trip(trip_id):
             seats_left = int(trip_info["empty_seats"]) - int(nr_of_seats)
             cur = db.cursor(dictionary=True)
 
-            # Uppdaterar antalet lediga platser för turen
-            cur.execute("UPDATE trip SET empty_seats = %s WHERE trip_id = %s", [seats_left, trip_id])
+            # Updates the amount of empty seats after a booking
+            cur.execute("UPDATE trip SET empty_seats = %s WHERE trip_id = %s",
+                        (seats_left, trip_id))
 
-            # Registrerar kundens boknings
-            cur.execute("INSERT INTO booking VALUES (%s, %s, %s)", [session["email"], trip_id, nr_of_seats])
+            # Registers the booking
+            cur.execute("INSERT INTO booking VALUES (%s, %s, %s)",
+                        (session["email"], trip_id, nr_of_seats))
 
             flash("Tack för din bokning", "success")
 
+            # Commits only of both queries were executed successfully
             db.commit()
             cur.close()
             return redirect(url_for("my_trips"))
-        except: # Fixa så att det specifica exception fångas
-            flash('Du har redan bokat denna resan. Gå till "Mina bokningar" om du vill redigera din bokning.', 'success')
+        except: # Fix so that the specific exception is caught!
+            flash('Du har redan bokat denna resan. Gå till "Mina bokningar"\
+                   om du vill redigera din bokning.', 'success')
             return render_template("trip.html", trip_info=trip_info)
 
 
@@ -157,13 +168,15 @@ def trip(trip_id):
 def my_trips():
     cur = db.cursor(dictionary=True)
 
-    # Hämta information om alla resor som användaren har bokat
+    # Pulls information about all bookings for a certain user
     cur.execute("""
-    SELECT t.trip_id, t.startdest, t.enddest, t.starttime, t.arrival, b.nr_of_seats
+    SELECT t.trip_id, t.startdest, t.enddest, t.starttime,
+    t.arrival, b.nr_of_seats
     FROM trip as t
     JOIN booking as b
     ON b.email = %s AND t.trip_id = b.trip_id
-    ORDER BY starttime""", [session["email"]])
+    ORDER BY starttime""",
+    (session["email"],))
 
     trips = cur.fetchall()
 
@@ -177,7 +190,7 @@ def my_trips():
 def edit_trip(trip_id):
     cur = db.cursor(dictionary=True)
 
-    # Hämtar information om en användares bokning
+    # Pulls information about a specific booking
     cur.execute("""
     SELECT b.email, b.trip_id, b.nr_of_seats,
     t.trip_id, t.startdest, t.enddest, t.starttime,
@@ -185,7 +198,7 @@ def edit_trip(trip_id):
     FROM booking as b
     JOIN trip as t
     ON b.trip_id = %s AND b.trip_id = t.trip_id AND email = %s""",
-    [trip_id, session["email"]])
+    (trip_id, session["email"]))
 
     trip_data = cur.fetchone()
 
@@ -196,19 +209,20 @@ def edit_trip(trip_id):
         updated_nr_of_seats = int(request.form["nr_of_seats"])
         cur = db.cursor(dictionary=True)
 
-        # Uppdaterar en användares bokning
+        # Updates a booking
         cur.execute("""UPDATE booking SET nr_of_seats = %s WHERE email = %s
         AND trip_id = %s""",
-        [updated_nr_of_seats, session["email"], trip_id])
+        (updated_nr_of_seats, session["email"], trip_id))
 
         diff_amount_of_seats = trip_data["nr_of_seats"] - updated_nr_of_seats
         updated_empty_seats = trip_data["empty_seats"] + diff_amount_of_seats
 
-        # Uppdaterar antalet lediga platser för turen som användaren bokade om
+        # Updates the amount of empty seats after a booking update
         cur.execute("""UPDATE trip SET empty_seats = %s
         WHERE trip_id = %s""",
-        [updated_empty_seats, trip_id])
+        (updated_empty_seats, trip_id))
 
+        # Commits only if both queries were executed successfully
         db.commit()
         cur.close()
         flash("Dina ändringar har sparats", "success")
@@ -220,11 +234,11 @@ def edit_trip(trip_id):
 def cancel_trip(trip_id):
     cur = db.cursor(dictionary=True)
 
-    # Tar bort en kunds bokning
+    # Removes a user's booking
     cur.execute("DELETE FROM booking WHERE trip_id = %s AND email = %s",
-    [trip_id, session["email"]])
+    (trip_id, session["email"]))
 
-    """ FIXA SÅ ATT ANTALET LEDIGA PLATSER OCKSÅ ÄNDRAS """
+    #Fix so that nr of available seats also is updated
     # Updaterar antalet lediga platser
     # cur.execute()
 
@@ -233,5 +247,6 @@ def cancel_trip(trip_id):
 
 
 if __name__ == "__main__":
-    app.secret_key='b8123f83ef5752b099e260a90f42d855e328142f2986f9e8d66c7c864aefe521'
+    app.secret_key='b8123f83ef5752b099e260a90f42d855\
+                    e328142f2986f9e8d66c7c864aefe521'
     app.run(debug=True)
