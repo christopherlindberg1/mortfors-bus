@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, flash, redirect, url_for, session
-from flask_mysqldb import MySQL
+import mysql.connector
 from passlib.hash import sha256_crypt
 from functools import wraps
 
@@ -8,14 +8,12 @@ from forms import Register, Login
 
 app = Flask(__name__)
 
-app.config['MYSQL_HOST'] = '127.0.0.1'
-app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = 'clean417k(dj'
-app.config['MYSQL_DB'] = 'mortfors'
-app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
-
-
-mysql = MySQL(app)
+db = mysql.connector.connect(
+    host = "localhost",
+    user = "root",
+    passwd = "clean417k(dj",
+    database = "mortfors",
+    )
 
 
 def is_logged_in(f):
@@ -54,11 +52,11 @@ def register():
             tel_nr = form.street.data
             password = sha256_crypt.encrypt(str(form.password.data))
 
-            cur = mysql.connection.cursor()
+            cur = db.cursor(dictionary=True)
 
             # Registrerar en ny användare
             cur.execute("INSERT INTO customer VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s)", (email, firstname, lastname, country, city, post_nr, street, tel_nr, password))
-            mysql.connection.commit()
+            db.commit()
             cur.close()
 
             flash('Du är nu registrerad och kan logga in', 'success')
@@ -75,13 +73,14 @@ def login():
         email = request.form["email"]
         password_candidate = request.form["password"]
 
-        cur = mysql.connection.cursor()
+        cur = db.cursor(dictionary=True)
 
         # Försöker hämta data om den användare som matchar den angivna epost-adressen
         result = cur.execute("SELECT * FROM customer WHERE email = %s", [email])
+        data = cur.fetchone()
+        print(data)
+        if len(data) != 0:
 
-        if result > 0:
-            data = cur.fetchone()
             password = data["password"]
             email = data["email"]
             if sha256_crypt.verify(password_candidate, password):
@@ -110,7 +109,7 @@ def logout():
 
 @app.route("/trips/")
 def trips():
-    cur = mysql.connection.cursor()
+    cur = db.cursor(dictionary=True)
 
     # Hämtar data om alla tillgängliga resor
     cur.execute("SELECT * FROM trip ORDER BY startdest, enddest, starttime")
@@ -121,7 +120,7 @@ def trips():
 @app.route("/trip/<trip_id>", methods=["GET", "POST"])
 @is_logged_in
 def trip(trip_id):
-    cur = mysql.connection.cursor()
+    cur = db.cursor(dictionary=True)
     # Fixa join med City så att gatuadress hämtas
 
     # Hämtar informaiton om en specifik tur
@@ -135,7 +134,7 @@ def trip(trip_id):
         try:
             nr_of_seats = request.form["nr_of_seats"]
             seats_left = int(trip_info["empty_seats"]) - int(nr_of_seats)
-            cur = mysql.connection.cursor()
+            cur = db.cursor(dictionary=True)
 
             # Uppdaterar antalet lediga platser för turen
             cur.execute("UPDATE trip SET empty_seats = %s WHERE trip_id = %s", [seats_left, trip_id])
@@ -145,7 +144,7 @@ def trip(trip_id):
 
             flash("Tack för din bokning", "success")
 
-            mysql.connection.commit()
+            db.commit()
             cur.close()
             return redirect(url_for("my_trips"))
         except: # Fixa så att det specifica exception fångas
@@ -156,7 +155,7 @@ def trip(trip_id):
 @app.route("/my_trips/")
 @is_logged_in
 def my_trips():
-    cur = mysql.connection.cursor()
+    cur = db.cursor(dictionary=True)
 
     # Hämta information om alla resor som användaren har bokat
     cur.execute("""
@@ -176,7 +175,7 @@ def my_trips():
 @app.route("/edit_trip/<trip_id>", methods=["GET", "POST"])
 @is_logged_in
 def edit_trip(trip_id):
-    cur = mysql.connection.cursor()
+    cur = db.cursor(dictionary=True)
 
     # Hämtar information om en användares bokning
     cur.execute("""
@@ -193,9 +192,9 @@ def edit_trip(trip_id):
     if request.method == "GET":
         return render_template("edit_trip.html", trip_data=trip_data)
 
-    elif request.method == "POST" and request.form.id == "update_trip_form":
+    elif request.method == "POST":
         updated_nr_of_seats = int(request.form["nr_of_seats"])
-        cur = mysql.connection.cursor()
+        cur = db.cursor(dictionary=True)
 
         # Uppdaterar en användares bokning
         cur.execute("""UPDATE booking SET nr_of_seats = %s WHERE email = %s
@@ -210,7 +209,7 @@ def edit_trip(trip_id):
         WHERE trip_id = %s""",
         [updated_empty_seats, trip_id])
 
-        mysql.connection.commit()
+        db.commit()
         cur.close()
         flash("Dina ändringar har sparats", "success")
         return redirect(url_for("my_trips"))
@@ -219,7 +218,7 @@ def edit_trip(trip_id):
 @app.route("/cancel_trip/<trip_id>", methods=["GET", "POST"])
 @is_logged_in
 def cancel_trip(trip_id):
-    cur = mysql.connection.cursor()
+    cur = db.cursor(dictionary=True)
 
     # Tar bort en kunds bokning
     cur.execute("DELETE FROM booking WHERE trip_id = %s AND email = %s",
@@ -229,7 +228,7 @@ def cancel_trip(trip_id):
     # Updaterar antalet lediga platser
     # cur.execute()
 
-    mysql.connection.commit()
+    db.commit()
     cur.close()
 
 
