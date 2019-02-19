@@ -59,7 +59,7 @@ When the virtual environment is activate its name will be visible to the far lef
 
 ### Install Flask
 The Python framework Flask is used to build the web server. Install Flask within the virtual environment. The virtual environment must be activated.
-Install the Flask framework with the command:
+Install the Flask framework with the following command:
 
 ```
 $ pip install flask
@@ -70,5 +70,21 @@ $ pip install flask
 Install mysql.connector so that the Python server can talk to a MySQL server:
 
 ```
-$ pip install mysql.connector
+$ pip install mysql-connector
+```
+
+### Passlib
+
+Passlib is used to encrypt passwords stored in the database. Install passlib with the following command:
+
+```
+$ pip install passlib
+```
+
+### WTForms
+
+WTForms is used to for craeting classes for the forms. Install WTForms with the following command:
+
+```
+$ pip install WTForms
 ```
