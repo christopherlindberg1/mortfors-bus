@@ -13,9 +13,12 @@ The app uses the following dependencies which has to be installed:
 ### Install Python 3.7 to your computer
 Python 3.7 is the language that the server is written in. Follow the instructions at https://www.python.org/downloads/ and install Python version 3.7 to your computer.
 
-**Then create a project map**
+**Then create a project folder and cd into it:**
+
+```
 $ mkdir <project-name>
 $ cd <project-name>
+```
 
 ### Virtual environment
 It's a good idea to create a virtual environment where all dependencies for the project are installed. By doing this dependencies for different projects won't interfere with each other.
@@ -28,7 +31,7 @@ If you are using Ubuntu Linux you will first have to install the virtual environ
 $ sudo apt-get install python3-venv
 ```
 
-Then create a virtual environment in the project folder that you created earlier.
+Then create a virtual environment in the project folder that you created earlier:
 
 **Mac & Linux:**
 ```
@@ -49,7 +52,7 @@ $ . venv/bin/activate
 
 **Windows:**
 ```
-venv\Scripts\activate
+$ venv\Scripts\activate
 ```
 
 When the virtual environment is activate its name will be visible to the far left in the search path in the terminal / command prompt.
@@ -64,7 +67,7 @@ $ pip install flask
 
 ### MySQL connector
 
-Install mysql.connector so that the Python server can talk to the MySQL server running on the computer:
+Install mysql.connector so that the Python server can talk to a MySQL server:
 
 ```
 $ pip install mysql.connector
