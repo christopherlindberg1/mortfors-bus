@@ -246,7 +246,7 @@ def edit_trip(trip_id):
         return redirect(url_for("my_trips"))
 
 
-@app.route("/cancel_trip/<trip_id>", methods=["GET", "POST"])
+@app.route("/cancel_trip/<trip_id>", methods=["POST"])
 @is_logged_in
 def cancel_trip(trip_id):
     """ Cancels a user's booking """
