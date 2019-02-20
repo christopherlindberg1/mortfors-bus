@@ -4,32 +4,32 @@
   <main>
     <section>
       <div class="container">
-        <h1 class="display-4">Redigera tur</h1>
+        <h1 class="display-4">Edit your booking</h1>
       </div>
     </section>
 
     <section>
       <div class="container">
-        <h2 class="display-5">Ändra antalet biljetter för din bokning</h2>
+        <h2 class="display-5">Change the amount of tickets for your trip</h2>
         <p class="lead">{{ trip_data.startdest }} - {{ trip_data.enddest }}.</p>
-        <p>Avgång: {{ trip_data.starttime }}<br>
-        Ankomst: {{ trip_data.arrival }}<br>
-        Resan kostar {{ trip_data.price }} kr/person.
-        <p>{{ trip_data.empty_seats }} lediga platser.<br>
-        Du har för tillfället {{ trip_data.nr_of_seats }} biljetter</p>
-        <p>Hur många platser vill du totalt ha?</p>
+        <p>Start time: {{ trip_data.starttime }}<br>
+        Arrival: {{ trip_data.arrival }}<br>
+        Price per ticket {{ trip_data.price }} kr/person.
+        <p>{{ trip_data.empty_seats }} available seats.<br>
+        You currently have <b>{{ trip_data.nr_of_seats }} tickets</b> for this trip.</p>
+        <p>How many tickets do you want in total?</p>
 
         {% from "includes/_formhelpers.html" import render_field %}
         <form  method="POST" action="">
-          <label for="nr_of_seats">Antal platser: </label>
+          <label for="nr_of_seats">Tickets: </label>
           <input type="number" name="nr_of_seats" id="nr_of_seats" value={{ trip_data.nr_of_seats }} min="1" max={{ trip_data.empty_seats + trip_data.nr_of_seats }} required><br>
-          <button type="submit" class="btn btn-success">Uppdatera</button>
+          <button type="submit" class="btn btn-success">Update booking</button>
         </form>
 
-        <h2 class="display-5 mt-4">Avboka resan</h2>
-        <p>Vill du avboka din resa? Avboka i så fall på knappen nedan</p>
+        <h2 class="display-5 mt-4">Cancel your booking</h2>
+        <p>Do you want to cancel your trip? If so, press the button below.</p>
         <form  method="POST" action="/cancel_trip/{{ trip_data.trip_id }}">
-          <button type="submit" class="btn btn-primary">Avboka</button>
+          <button type="submit" class="btn btn-primary">Cancel booking</button>
         </form>
       </div>
     </section>

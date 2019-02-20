@@ -5,20 +5,21 @@
   <main>
     <section>
       <div class="container">
-        <h1 class="display-4">Turer du kan boka</h1>
+        <h1 class="display-4">Trips</h1>
       </div>
     </section>
 
     <section>
       <div class="container">
+        {% if trips %}
         <table class="table">
           <tr>
-            <th>Från</th>
-            <th>Till</th>
-            <th>Avgång</th>
-            <th>Ankomst</th>
-            <th>Pris</th>
-            <th>Lediga platser</th>
+            <th>From</th>
+            <th>To</th>
+            <th>Deprature</th>
+            <th>Arrival</th>
+            <th>Price</th>
+            <th>Available seats</th>
           </tr>
           {% for trip in trips %}
             <tr>
@@ -28,11 +29,13 @@
               <td>{{ trip.arrival }}</td>
               <td>{{ trip.price }} kr</td>
               <td>{{ trip.empty_seats }}</td>
-              <td><a href="/trip/{{ trip.trip_id }}" class="btn btn-success">Läs mer</a></td>
+              <td><a href="/trip/{{ trip.trip_id }}" class="btn btn-success">Learn more</a></td>
             </tr>
           {% endfor %}
         </table>
-
+        {% else %}
+          <p class="lead">There are no trip available at the moment</p>
+        {% endif %}
       </div>
     </section>
   </main>

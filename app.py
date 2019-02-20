@@ -25,7 +25,8 @@ def is_logged_in(f):
         if "logged_in" in session:
             return f(*args, **kwargs)
         else:
-            flash("För att ta del av den här sidan måste du vara inloggad", "success")
+            flash("To access this page you have to be logged in",
+            "success")
             return redirect(url_for("login"))
     return wrap
 
@@ -68,10 +69,10 @@ def register():
             db.commit()
             cur.close()
 
-            flash('Du är nu registrerad och kan logga in', 'success')
+            flash('You are registered and can now log in', 'success')
             return redirect(url_for("login"))
         except:
-           flash('Det finns redan ett konto registrerat på denna e-post',
+           flash('An account is already registered with this email address',
                  'danger')
            return redirect(url_for("register"))
 
@@ -91,7 +92,7 @@ def login():
         result = cur.execute("SELECT * FROM customer WHERE email = %s",
                              (email,))
         data = cur.fetchone()
-        print(data)
+
         if len(data) != 0:
 
             password = data["password"]
@@ -100,14 +101,15 @@ def login():
                 session["logged_in"] = True
                 session["email"] = email
                 firstname = data["firstname"]
-                flash("Välkommen " + firstname + "!", "success")
+                flash("Welcome " + firstname + "!", "success")
                 return redirect(url_for("index"))
             else:
-                flash("Ogiltigt lösenord", "danger")
+                flash("Invalid password", "danger")
                 return render_template("login.html", form=form)
             cur.close()
         else:
-            flash("Ingen användare med denna epost hittades", "danger")
+            flash("Found no registered user with this email address",
+            "danger")
             return render_template("login.html", form=form)
     else:
         return render_template("login.html", form=form, title="Logga in")
@@ -132,7 +134,10 @@ def trips():
     cur.execute("""SELECT * FROM trip WHERE empty_seats != 0
                    ORDER BY startdest, enddest, starttime""")
     trips = cur.fetchall()
-    return render_template("trips.html", trips=trips)
+
+    if len(trips) != 0:
+        return render_template("trips.html", trips=trips)
+    return render_template("trips.html")
 
 
 @app.route("/trip/<trip_id>", methods=["GET", "POST"])
@@ -164,15 +169,15 @@ def trip(trip_id):
             cur.execute("INSERT INTO booking VALUES (%s, %s, %s)",
                         (session["email"], trip_id, nr_of_seats))
 
-            flash("Tack för din bokning", "success")
+            flash("Thank you for your booking", "success")
 
             # Commits only of both queries were executed successfully
             db.commit()
             cur.close()
             return redirect(url_for("my_trips"))
         except: # Fix so that the specific exception is caught!
-            flash('Du har redan bokat denna resan. Gå till "Mina bokningar"\
-                   om du vill redigera din bokning.', 'success')
+            flash('You have already booked this trip. Go to "My bookings"\
+                   if you want to edit your booking.', 'success')
             return render_template("trip.html", trip_info=trip_info)
 
 
@@ -242,7 +247,7 @@ def edit_trip(trip_id):
         # Commits only if both queries were executed successfully
         db.commit()
         cur.close()
-        flash("Dina ändringar har sparats", "success")
+        flash("Your changes has been saved", "success")
         return redirect(url_for("my_trips"))
 
 
@@ -264,7 +269,7 @@ def cancel_trip(trip_id):
     except TypeError:
         # data["nr_of_seats"] generates TypeError if
         # the query above finds no match
-        flash("Du har inte bokat denna resan", "success")
+        flash("You have not booked this trip", "success")
         return redirect(url_for("my_trips"))
 
     # Removes a user's booking
@@ -282,7 +287,7 @@ def cancel_trip(trip_id):
     db.commit()
     cur.close()
 
-    flash("Dina tur har avbokats", "success")
+    flash("Your booking has been removed", "success")
     return redirect(url_for("my_trips"))
 
 

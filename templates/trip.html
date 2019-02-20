@@ -5,23 +5,25 @@
   <main>
     <section>
       <div class="container">
-        <h1 class="display-4">Information om resan</h1>
+        <h1 class="display-4">Information about the trip</h1>
       </div>
     </section>
 
     <section>
       <div class="container">
-        <p class="lead">Resa från {{ trip_info.startdest }} till {{ trip_info.enddest }}.</p>
-        <p>Avgång: {{ trip_info.starttime }} från <i>adress</i><br>
-        Ankomst: {{ trip_info.arrival }} till <i>adress</i><br>
-        Resan kostar {{ trip_info.price }} kr/person. {{ trip_info.empty_seats }} lediga platser.</p>
-        <p>Hur många platser vill du boka?</p>
+        <h2 class="display-5">{{ trip_info.startdest }} - {{ trip_info.enddest }}</h2>
+        <p>Departure {{ trip_info.starttime }} from <i>adress</i><br>
+        Arrival {{ trip_info.arrival }} to <i>adress</i><br>
+        Price: {{ trip_info.price }} kr/person.<br>
+        {{ trip_info.empty_seats }} available seats.</p>
+        <p>How many tickets do you want?</p>
 
         {% from "includes/_formhelpers.html" import render_field %}
         <form  method="POST" action="">
-          <label for="nr_of_seats">Antal platser: </label>
+          <!-- Use WTForms instead for a more secure validation -->
+          <label for="nr_of_seats">Number of tickets: </label>
           <input type="number" name="nr_of_seats" id="nr_of_seats" value="1" min="1" max={{ trip_info.empty_seats }} required><br>
-          <button type="submit" class="btn btn-success">Boka</button>
+          <button type="submit" class="btn btn-success">Book trip</button>
         </form>
       </div>
     </section>

@@ -21,7 +21,7 @@
 		{% include "includes/_messages.html" %}  <!-- Visar flash-meddelanden vid olika tillfällen -->
 
 		{% if session %}
-			<div class="container" id="identity"><p>Inloggad som {{ session["email"] }}</p></div>
+			<div class="container" id="identity"><p>Logged in as {{ session["email"] }}</p></div>
 		{% endif %}
 
 		{% block body %} {% endblock %}

@@ -5,7 +5,7 @@
   <main>
     <section>
       <div class="container">
-        <h1 class="display-4">Mina resor</h1>
+        <h1 class="display-4">My bookings</h1>
       </div>
     </section>
 
@@ -13,14 +13,14 @@
       <div class="container">
         <div class="container">
           {% if trips %}
-            <p class="lead">Nedan ser du information om de resor du har bokat</p>
+            <p class="lead">You can edit or read more about your bookings</p>
           <table class="table">
             <tr>
-              <th>Från</th>
-              <th>Till</th>
-              <th>Avgång</th>
-              <th>Ankomst</th>
-              <th>Biljetter</th>
+              <th>From</th>
+              <th>To</th>
+              <th>Departure</th>
+              <th>Arrival</th>
+              <th>Tickets</th>
             </tr>
 
             {% for trip in trips %}
@@ -36,8 +36,8 @@
             {% endfor %}
           </table>
           {% else %}
-            <p class="lead">Du har inte bokat några resor.</p>
-            <a href="/trips/" class="btn btn-primary">Se turer</a>
+            <p class="lead">You have no bookings at the moment</p>
+            <a href="/trips/" class="btn btn-primary">Browse trips</a>
           {% endif %}
 
         </div>

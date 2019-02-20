@@ -2,19 +2,19 @@ from wtforms import Form, StringField, TextAreaField, PasswordField, BooleanFiel
 
 
 class Register(Form):
-    email = StringField("E-post", [validators.Email()])
-    firstname = StringField("Förnamn", [validators.DataRequired()])
-    lastname = StringField("Efternamn", [validators.DataRequired()])
-    country = StringField("Land", [validators.DataRequired()])
-    city = StringField("Stad", [validators.DataRequired()])
-    post_nr = StringField("Postnummer", [validators.DataRequired()])
-    street = StringField("Gata", [validators.DataRequired()])
-    tel_nr = StringField("Telefonnummer")
-    password = PasswordField("Lösenord", [validators.DataRequired(), validators.EqualTo("confirm", message="Fel lösenord")])
-    confirm = PasswordField("Bekräfta lösenord")
+    email = StringField("Email", [validators.Email()])
+    firstname = StringField("First name", [validators.DataRequired()])
+    lastname = StringField("Last name", [validators.DataRequired()])
+    country = StringField("Country", [validators.DataRequired()])
+    city = StringField("City", [validators.DataRequired()])
+    post_nr = StringField("ZIP code", [validators.DataRequired()])
+    street = StringField("Street", [validators.DataRequired()])
+    tel_nr = StringField("Phone")
+    password = PasswordField("Password", [validators.DataRequired(), validators.EqualTo("confirm", message="Fel lösenord")])
+    confirm = PasswordField("Confirm password")
 
 
 class Login(Form):
-    email = StringField("E-post", [validators.Email()])
-    password = PasswordField("Lösenord", [validators.DataRequired()])
-    remember_me = BooleanField("Kom ihåg mig")
+    email = StringField("Email", [validators.Email()])
+    password = PasswordField("Password", [validators.DataRequired()])
+    remember_me = BooleanField("Remember me")
