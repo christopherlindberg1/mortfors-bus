@@ -18,7 +18,8 @@ db = mysql.connector.connect(
 
 
 def is_logged_in(f):
-    """Used to make certain pages only visible to logged in users"""
+    """ Used to make certain pages only visible to logged in users """
+
     @wraps(f)
     def wrap(*args, **kwargs):
         if "logged_in" in session:
@@ -31,11 +32,15 @@ def is_logged_in(f):
 
 @app.route("/")
 def index():
+    """ Returns the start page """
+
     return render_template("index.html")
 
 
 @app.route("/register/", methods=["GET", "POST"])
 def register():
+    """ Registers a new user """
+
     form = Register(request.form)
 
     if request.method == "GET":
@@ -73,6 +78,8 @@ def register():
 
 @app.route("/login/", methods=["GET", "POST"])
 def login():
+    """ Logs in a user if email and password match """
+
     form = Login(request.form)
     if request.method == "POST":
         email = request.form["email"]
@@ -109,16 +116,21 @@ def login():
 @app.route("/logout/")
 @is_logged_in
 def logout():
+    """ Logs a user out by clearing the session object """
+
     session.clear()
     return redirect(url_for("index"))
 
 
 @app.route("/trips/")
 def trips():
+    """ Lists all available trips """
+
     cur = db.cursor(dictionary=True)
 
     # Pulls data about all available trips
-    cur.execute("SELECT * FROM trip ORDER BY startdest, enddest, starttime")
+    cur.execute("""SELECT * FROM trip WHERE empty_seats != 0
+                   ORDER BY startdest, enddest, starttime""")
     trips = cur.fetchall()
     return render_template("trips.html", trips=trips)
 
@@ -126,6 +138,7 @@ def trips():
 @app.route("/trip/<trip_id>", methods=["GET", "POST"])
 @is_logged_in
 def trip(trip_id):
+    """ Shows informaion about a single trip """
     cur = db.cursor(dictionary=True)
     # Fixa join med City så att gatuadress hämtas
 
@@ -166,6 +179,8 @@ def trip(trip_id):
 @app.route("/my_trips/")
 @is_logged_in
 def my_trips():
+    """ Shows a user all of their bookings, if there are any """
+
     cur = db.cursor(dictionary=True)
 
     # Pulls information about all bookings for a certain user
@@ -188,6 +203,8 @@ def my_trips():
 @app.route("/edit_trip/<trip_id>", methods=["GET", "POST"])
 @is_logged_in
 def edit_trip(trip_id):
+    """ Edits the amount of seats in a user's booking """
+
     cur = db.cursor(dictionary=True)
 
     # Pulls information about a specific booking
@@ -232,18 +249,41 @@ def edit_trip(trip_id):
 @app.route("/cancel_trip/<trip_id>", methods=["GET", "POST"])
 @is_logged_in
 def cancel_trip(trip_id):
+    """ Cancels a user's booking """
+
     cur = db.cursor(dictionary=True)
+
+    # Pulls nr of booked seats for the booking that shall be deleted
+    cur.execute("""SELECT nr_of_seats FROM booking
+                   WHERE email = %s and trip_id = %s""",
+                   (session["email"], trip_id))
+    data = cur.fetchone()
+
+    try:
+        nr_of_seats = data["nr_of_seats"]
+    except TypeError:
+        # data["nr_of_seats"] generates TypeError if
+        # the query above finds no match
+        flash("Du har inte bokat denna resan", "success")
+        return redirect(url_for("my_trips"))
 
     # Removes a user's booking
     cur.execute("DELETE FROM booking WHERE trip_id = %s AND email = %s",
     (trip_id, session["email"]))
 
-    #Fix so that nr of available seats also is updated
-    # Updaterar antalet lediga platser
-    # cur.execute()
+    # Updates the amount of available seats
+    cur.execute("""UPDATE trip SET empty_seats = empty_seats + %s
+                   WHERE trip_id = %s""",
+                   (nr_of_seats, trip_id))
 
+    """ Can this be done with fewer queries? """
+
+    # Commits only if the two last queries were executed successfully
     db.commit()
     cur.close()
+
+    flash("Dina tur har avbokats", "success")
+    return redirect(url_for("my_trips"))
 
 
 if __name__ == "__main__":
