@@ -1,5 +1,4 @@
--- De tre första SQL-frågorna har körts från kommandotolken för att
--- applikationen ska ha något innehåll
+-- Queries that fill the application with some basic data, like trips
 
 
 INSERT INTO driver VALUES
