@@ -13,7 +13,7 @@ db = mysql.connector.connect(
     host = "localhost",
     user = "root",
     passwd = "clean417k(dj",
-    database = "mortfors",
+    database = "mortfors_bus",
     )
 
 
@@ -94,8 +94,7 @@ def login():
                              (email,))
         data = cur.fetchone()
 
-        if len(data) != 0:
-
+        if data != None:
             password = data["password"]
             email = data["email"]
             if sha256_crypt.verify(password_candidate, password):
@@ -105,11 +104,11 @@ def login():
                 flash("Welcome " + firstname + "!", "success")
                 return redirect(url_for("index"))
             else:
-                flash("Invalid password", "danger")
+                flash("Email and password does not match", "danger")
                 return render_template("login.html", form=form)
             cur.close()
         else:
-            flash("Found no registered user with this email address",
+            flash("Email and password does not match",
             "danger")
             return render_template("login.html", form=form)
     else:
