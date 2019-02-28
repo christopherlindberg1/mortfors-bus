@@ -1,7 +1,7 @@
 from wtforms import Form, StringField, TextAreaField, PasswordField, BooleanField, validators
 
 
-class Register(Form):
+class RegistrationForm(Form):
     email = StringField("Email", [validators.Email()])
     firstname = StringField("First name", [validators.DataRequired()])
     lastname = StringField("Last name", [validators.DataRequired()])
@@ -14,7 +14,7 @@ class Register(Form):
     confirm = PasswordField("Confirm password")
 
 
-class Login(Form):
+class LoginForm(Form):
     email = StringField("Email", [validators.Email()])
     password = PasswordField("Password", [validators.DataRequired()])
     remember_me = BooleanField("Remember me")

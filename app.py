@@ -4,11 +4,11 @@ from passlib.hash import sha256_crypt
 from functools import wraps
 
 # Imports from other project files
-from forms import Register, Login
+from forms import RegistrationForm, LoginForm
 
 app = Flask(__name__)
 
-# Connects to a local MySQL server
+# Connects to a MySQL server
 db = mysql.connector.connect(
     host = "localhost",
     user = "root",
@@ -42,7 +42,7 @@ def index():
 def register():
     """ Registers a new user """
 
-    form = Register(request.form)
+    form = RegistrationForm(request.form)
 
     if request.method == "GET":
         return render_template("register.html", form=form, title="Registrera")
@@ -81,7 +81,8 @@ def register():
 def login():
     """ Logs in a user if email and password match """
 
-    form = Login(request.form)
+    form = LoginForm(request.form)
+
     if request.method == "POST":
         email = request.form["email"]
         password_candidate = request.form["password"]
@@ -161,13 +162,13 @@ def trip(trip_id):
             seats_left = int(trip_info["empty_seats"]) - int(nr_of_seats)
             cur = db.cursor(dictionary=True)
 
-            # Updates the amount of empty seats after a booking
-            cur.execute("UPDATE trip SET empty_seats = %s WHERE trip_id = %s",
-                        (seats_left, trip_id))
-
             # Registers the booking
             cur.execute("INSERT INTO booking VALUES (%s, %s, %s)",
                         (session["email"], trip_id, nr_of_seats))
+
+            # Updates the amount of empty seats after a booking
+            cur.execute("UPDATE trip SET empty_seats = %s WHERE trip_id = %s",
+                        (seats_left, trip_id))
 
             flash("Thank you for your booking", "success")
 
@@ -251,9 +252,9 @@ def edit_trip(trip_id):
         return redirect(url_for("my_trips"))
 
 
-@app.route("/cancel_trip/<trip_id>", methods=["POST"])
+@app.route("/cancel_booking/<trip_id>", methods=["POST"])
 @is_logged_in
-def cancel_trip(trip_id):
+def cancel_booking(trip_id):
     """ Cancels a user's booking """
 
     cur = db.cursor(dictionary=True)

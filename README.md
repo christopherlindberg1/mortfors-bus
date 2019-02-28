@@ -81,10 +81,18 @@ Passlib is used to encrypt passwords stored in the database. Install passlib wit
 $ pip install passlib
 ```
 
-### WTForms
+### Flask-WTF
 
-WTForms is used to for craeting classes for the forms. Install WTForms with the following command:
+ Install Flask-WTF with the following command:
 
 ```
-$ pip install WTForms
+$ pip install flask-wtf
+```
+
+### WTForms
+
+WTForms is used to create classes for the forms that are used to get user input. It is also used to get different kinds of input fields and validators for those fields. Install WTForms with the following command:
+
+```
+pip install wtforms
 ```
