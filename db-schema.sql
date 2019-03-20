@@ -1,4 +1,4 @@
-CREATE DATABASE morfors;
+CREATE DATABASE mortfors_buss;
 
 
 -- information about customers
@@ -39,17 +39,17 @@ CREATE TABLE city
 
 -- All trips that
 CREATE TABLE trip
-	(trip_id INT AUTO_INCREMENT,
+	(trip_id SERIAL,
 	startdest VARCHAR(30) NOT NULL,	-- city of the start destination
 	enddest VARCHAR(30) NOT NULL,		-- city of the end destination
-	starttime DATETIME NOT NULL,  	-- date and time for when the trip begins
-	arrival DATETIME NOT NULL,  		-- date and time for when the bus arrives
+	starttime TIMESTAMP NOT NULL,  	-- date and time for when the trip begins
+	arrival TIMESTAMP NOT NULL,  		-- date and time for when the bus arrives
 	price INT NOT NULL,  						-- price per person
 	empty_seats INT NOT NULL,  			-- nr of available seats
 	driver CHAR(11),								-- driver
 	PRIMARY KEY (trip_id),
-	FOREIGN KEY (startdest) references city(city_name),
-	FOREIGN KEY (enddest) references city(city_name));
+	FOREIGN KEY (startdest) REFERENCES city(city_name),
+	FOREIGN KEY (enddest) REFERENCES city(city_name));
 
 
 -- bookings
@@ -58,5 +58,5 @@ CREATE TABLE booking
 	trip_id INT NOT NULL,					-- id for trip
 	nr_of_seats INT NOT NULL,			-- nr of tickets the customer has bought
 	PRIMARY KEY (email, trip_id),
-	FOREIGN KEY (email) references customer (email),
-	FOREIGN KEY (trip_id) references trip (trip_id));
+	FOREIGN KEY (email) REFERENCES customer (email),
+	FOREIGN KEY (trip_id) REFERENCES trip (trip_id));
