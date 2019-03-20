@@ -65,12 +65,12 @@ Install the Flask framework with the following command:
 $ pip install flask
 ```
 
-### MySQL connector
+### Psycopg2
 
-Install mysql.connector so that the Python server can talk to a MySQL server:
+Psycopg2 is the PostgreSQL adapter that the Python server uses to talk to a PostgreSQL database server. Install it with the following command:
 
 ```
-$ pip install mysql-connector
+$ pip install psycopg2
 ```
 
 ### Passlib
