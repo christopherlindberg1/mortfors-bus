@@ -1,25 +1,14 @@
 from flask import Flask, render_template, request, flash, redirect, url_for, session
-import mysql.connector
 from passlib.hash import sha256_crypt
 from functools import wraps
-
-# Imports from other project files
 from forms import RegistrationForm, LoginForm
+import db_functions
 
 app = Flask(__name__)
-
-# Connects to a MySQL server
-db = mysql.connector.connect(
-    host = "localhost",
-    user = "root",
-    passwd = "clean417k(dj",
-    database = "mortfors_bus",
-    )
 
 
 def is_logged_in(f):
     """ Used to make certain pages only visible to logged in users """
-
     @wraps(f)
     def wrap(*args, **kwargs):
         if "logged_in" in session:
@@ -33,15 +22,13 @@ def is_logged_in(f):
 
 @app.route("/")
 def index():
-    """ Returns the start page """
-
+    """ Returns the landing page """
     return render_template("index.html")
 
 
 @app.route("/register/", methods=["GET", "POST"])
 def register():
     """ Registers a new user """
-
     form = RegistrationForm(request.form)
 
     if request.method == "GET":
@@ -56,19 +43,20 @@ def register():
             city = form.city.data.strip().title()
             post_nr = form.post_nr.data
             street = form.street.data.strip().title()
-            tel_nr = form.street.data
+            tel_nr = form.tel_nr.data
             password = sha256_crypt.encrypt(str(form.password.data))
 
-            cur = db.cursor(dictionary=True)
+            conn = db_functions.create_db_conn()
+            cur = db_functions.create_db_cur(conn)
 
             # Registers a new user
             cur.execute("""INSERT INTO customer VALUES
                         (%s, %s, %s, %s, %s, %s, %s, %s, %s)""",
                         (email, firstname, lastname, country,
                          city, post_nr, street, tel_nr, password))
-            db.commit()
+            conn.commit()
             cur.close()
-
+            conn.close()
             flash('You are registered and can now log in', 'success')
             return redirect(url_for("login"))
         except:
@@ -80,17 +68,17 @@ def register():
 @app.route("/login/", methods=["GET", "POST"])
 def login():
     """ Logs in a user if email and password match """
-
     form = LoginForm(request.form)
 
     if request.method == "POST":
         email = request.form["email"]
         password_candidate = request.form["password"]
 
-        cur = db.cursor(dictionary=True)
+        conn = db_functions.create_db_conn()
+        cur = db_functions.create_db_cur(conn)
 
         # Pulls data about a user with a certain email, if there is one
-        result = cur.execute("SELECT * FROM customer WHERE email = %s",
+        cur.execute("SELECT * FROM customer WHERE email = %s",
                              (email,))
         data = cur.fetchone()
 
@@ -119,7 +107,6 @@ def login():
 @is_logged_in
 def logout():
     """ Logs a user out by clearing the session object """
-
     session.clear()
     return redirect(url_for("index"))
 
@@ -127,13 +114,13 @@ def logout():
 @app.route("/trips/")
 def trips():
     """ Lists all available trips """
-
-    cur = db.cursor(dictionary=True)
-
-    # Pulls data about all available trips
+    conn = db_functions.create_db_conn()
+    cur = db_functions.create_db_cur(conn)
     cur.execute("""SELECT * FROM trip WHERE empty_seats != 0
-                   ORDER BY startdest, enddest, starttime""")
+                    ORDER BY startdest, enddest, starttime""");
     trips = cur.fetchall()
+    cur.close()
+    conn.close()
 
     if len(trips) != 0:
         return render_template("trips.html", trips=trips)
@@ -144,10 +131,12 @@ def trips():
 @is_logged_in
 def trip(trip_id):
     """ Shows informaion about a single trip """
-    cur = db.cursor(dictionary=True)
+    conn = db_functions.create_db_conn()
+    cur = db_functions.create_db_cur(conn)
     # Fixa join med City så att gatuadress hämtas
 
     # Pulls data about a specific trip
+
     cur.execute("SELECT * FROM trip WHERE trip_id = %s",
     (trip_id,))
     trip_info = cur.fetchone()
@@ -159,7 +148,7 @@ def trip(trip_id):
         try:
             nr_of_seats = request.form["nr_of_seats"]
             seats_left = int(trip_info["empty_seats"]) - int(nr_of_seats)
-            cur = db.cursor(dictionary=True)
+            # cur = db.cursor(dictionary=True)
 
             # Registers the booking
             cur.execute("INSERT INTO booking VALUES (%s, %s, %s)",
@@ -172,8 +161,9 @@ def trip(trip_id):
             flash("Thank you for your booking", "success")
 
             # Commits only of both queries were executed successfully
-            db.commit()
+            conn.commit()
             cur.close()
+            conn.close()
             return redirect(url_for("my_trips"))
         except: # Fix so that the specific exception is caught!
             flash('You have already booked this trip. Go to "My bookings"\
@@ -185,8 +175,8 @@ def trip(trip_id):
 @is_logged_in
 def my_trips():
     """ Shows a user all of their bookings, if there are any """
-
-    cur = db.cursor(dictionary=True)
+    conn = db_functions.create_db_conn()
+    cur = db_functions.create_db_cur(conn)
 
     # Pulls information about all bookings for a certain user
     cur.execute("""
@@ -209,8 +199,8 @@ def my_trips():
 @is_logged_in
 def edit_trip(trip_id):
     """ Edits the amount of seats in a user's booking """
-
-    cur = db.cursor(dictionary=True)
+    conn = db_functions.create_db_conn()
+    cur = db_functions.create_db_cur(conn)
 
     # Pulls information about a specific booking
     cur.execute("""
@@ -223,13 +213,16 @@ def edit_trip(trip_id):
     (trip_id, session["email"]))
 
     trip_data = cur.fetchone()
+    cur.close()
+    conn.close()
 
     if request.method == "GET":
         return render_template("edit_trip.html", trip_data=trip_data)
 
     elif request.method == "POST":
         updated_nr_of_seats = int(request.form["nr_of_seats"])
-        cur = db.cursor(dictionary=True)
+        conn = db_functions.create_db_conn()
+        cur = db_functions.create_db_cur(conn)
 
         # Updates a booking
         cur.execute("""UPDATE booking SET nr_of_seats = %s WHERE email = %s
@@ -245,8 +238,9 @@ def edit_trip(trip_id):
         (updated_empty_seats, trip_id))
 
         # Commits only if both queries were executed successfully
-        db.commit()
+        conn.commit()
         cur.close()
+        conn.close()
         flash("Your changes has been saved", "success")
         return redirect(url_for("my_trips"))
 
@@ -255,8 +249,8 @@ def edit_trip(trip_id):
 @is_logged_in
 def cancel_booking(trip_id):
     """ Cancels a user's booking """
-
-    cur = db.cursor(dictionary=True)
+    conn = db_functions.create_db_conn()
+    cur = db_functions.create_db_cur(conn)
 
     # Pulls nr of booked seats for the booking that shall be deleted
     cur.execute("""SELECT nr_of_seats FROM booking
@@ -284,9 +278,9 @@ def cancel_booking(trip_id):
     """ Can this be done with fewer queries? """
 
     # Commits only if the two last queries were executed successfully
-    db.commit()
+    conn.commit()
     cur.close()
-
+    conn.close()
     flash("Your booking has been removed", "success")
     return redirect(url_for("my_trips"))
 
