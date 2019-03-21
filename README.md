@@ -73,12 +73,12 @@ Psycopg2 is the PostgreSQL adapter that the Python server uses to talk to a Post
 $ pip install psycopg2
 ```
 
-### Passlib
+### Flask-bcrypt
 
-Passlib is used to encrypt passwords stored in the database. Install passlib with the following command:
+Passlib is used to encrypt passwords stored in the database. Install flask-bcrypt with the following command:
 
 ```
-$ pip install passlib
+$ pip install flask-bcrypt
 ```
 
 ### Flask-WTF
