@@ -37,7 +37,7 @@ CREATE TABLE city
 	PRIMARY KEY (city_name));
 
 
--- All trips that
+-- All trips available for booking
 CREATE TABLE trip
 	(trip_id SERIAL,
 	startdest VARCHAR(30) NOT NULL,		-- city of the start destination

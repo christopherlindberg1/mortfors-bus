@@ -3,6 +3,9 @@ from passlib.hash import sha256_crypt
 from functools import wraps
 from forms import RegistrationForm, LoginForm
 import db_functions
+import sys
+sys.path.append("../")
+import config
 
 app = Flask(__name__)
 
@@ -58,6 +61,7 @@ def register():
             cur.close()
             conn.close()
 
+            # Automatically logs user in after registration
             session["logged_in"] = True
             session["email"] = email
 
@@ -279,8 +283,6 @@ def cancel_booking(trip_id):
                    WHERE trip_id = %s""",
                    (nr_of_seats, trip_id))
 
-    """ Can this be done with fewer queries? """
-
     # Commits only if the two last queries were executed successfully
     conn.commit()
     cur.close()
@@ -290,6 +292,5 @@ def cancel_booking(trip_id):
 
 
 if __name__ == "__main__":
-    app.secret_key='b8123f83ef5752b099e260a90f42d855\
-                    e328142f2986f9e8d66c7c864aefe521'
+    app.secret_key=config.secret_key
     app.run(debug=True)
