@@ -38,7 +38,7 @@ CREATE TABLE city
 
 
 -- All trips that
-CREATE TABLE trippp
+CREATE TABLE trip
 	(trip_id SERIAL,
 	startdest VARCHAR(30) NOT NULL,		-- city of the start destination
 	enddest VARCHAR(30) NOT NULL,			-- city of the end destination
