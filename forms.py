@@ -10,7 +10,8 @@ class RegistrationForm(Form):
     post_nr = StringField("ZIP code", [validators.DataRequired()])
     street = StringField("Street", [validators.DataRequired()])
     tel_nr = StringField("Phone")
-    password = PasswordField("Password", [validators.DataRequired(), validators.EqualTo("confirm", message="Fel lösenord")])
+    password = PasswordField("Password", [validators.DataRequired(),
+            validators.EqualTo("confirm", message="Fel lösenord")])
     confirm = PasswordField("Confirm password")
 
 
