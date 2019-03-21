@@ -47,7 +47,7 @@ def register():
             post_nr = form.post_nr.data
             street = form.street.data.strip().title()
             tel_nr = form.tel_nr.data
-            password = sha256_crypt.encrypt(str(form.password.data))
+            password = sha256_crypt.hash(str(form.password.data))
 
             conn = db_functions.create_db_conn()
             cur = db_functions.create_db_cur(conn)
