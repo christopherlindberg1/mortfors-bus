@@ -57,8 +57,12 @@ def register():
             conn.commit()
             cur.close()
             conn.close()
-            flash('You are registered and can now log in', 'success')
-            return redirect(url_for("login"))
+
+            session["logged_in"] = True
+            session["email"] = email
+
+            flash('Your account has been registered', 'success')
+            return redirect(url_for("index"))
         except:
            flash('An account is already registered with this email address',
                  'danger')
