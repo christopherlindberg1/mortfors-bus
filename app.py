@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, flash, redirect, url_for, session
+from flask_bcrypt import Bcrypt
 from passlib.hash import sha256_crypt
 from functools import wraps
 from forms import RegistrationForm, LoginForm
@@ -6,8 +7,11 @@ import db_functions
 import sys
 sys.path.append("../")
 import config
+from datetime import datetime
+
 
 app = Flask(__name__)
+bcrypt = Bcrypt(app)
 
 
 def is_logged_in(f):
@@ -47,7 +51,8 @@ def register():
             post_nr = form.post_nr.data
             street = form.street.data.strip().title()
             tel_nr = form.tel_nr.data
-            password = sha256_crypt.hash(str(form.password.data))
+            # password = sha256_crypt.hash(str(form.password.data))
+            password = bcrypt.generate_password_hash(form.password.data).decode("utf-8")
 
             conn = db_functions.create_db_conn()
             cur = db_functions.create_db_cur(conn)
@@ -91,9 +96,10 @@ def login():
         data = cur.fetchone()
 
         if data != None:
-            password = data["password"]
+            password_hash = data["password"]
             email = data["email"]
-            if sha256_crypt.verify(password_candidate, password):
+            # if sha256_crypt.verify(password_candidate, password):
+            if bcrypt.check_password_hash(password_hash, password_candidate):
                 session["logged_in"] = True
                 session["email"] = email
                 firstname = data["firstname"]
@@ -233,9 +239,12 @@ def edit_trip(trip_id):
         cur = db_functions.create_db_cur(conn)
 
         # Updates a booking
-        cur.execute("""UPDATE booking SET nr_of_seats = %s WHERE email = %s
+        cur.execute("""UPDATE booking SET nr_of_seats = %s,
+        last_edit_timestamp = %s WHERE email = %s
         AND trip_id = %s""",
-        (updated_nr_of_seats, session["email"], trip_id))
+
+        # Want to have current datetime without microseconds
+        (updated_nr_of_seats, datetime.now(), session["email"], trip_id))
 
         diff_amount_of_seats = trip_data["nr_of_seats"] - updated_nr_of_seats
         updated_empty_seats = trip_data["empty_seats"] + diff_amount_of_seats
