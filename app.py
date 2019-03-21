@@ -65,11 +65,11 @@ def register():
             session["logged_in"] = True
             session["email"] = email
 
-            flash('Your account has been registered', 'success')
+            flash(f"Welcome to Mortfors Bus, {firstname}!", "success")
             return redirect(url_for("index"))
         except:
-           flash('An account is already registered with this email address',
-                 'danger')
+           flash("An account is already registered with this email address",
+                 "danger")
            return redirect(url_for("register"))
 
 
