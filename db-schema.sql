@@ -12,6 +12,7 @@ CREATE TABLE customer
 	street VARCHAR(30) NOT NULL,
 	tel_nr VARCHAR(15),
 	password VARCHAR(100) NOT NULL,
+	registration_timestamp TIMESTAMP DEFAULT date_trunc('second', now()),
 	PRIMARY KEY (email));
 
 
@@ -59,6 +60,8 @@ CREATE TABLE booking
 	(email VARCHAR(50) NOT NULL,		-- customer's email
 	trip_id INT NOT NULL,						-- id for trip
 	nr_of_seats INT NOT NULL,				-- nr of tickets the customer has bought
+	booking_timestamp TIMESTAMP DEFAULT date_trunc('second', now()),
+	last_edit_timestamp TIMESTAMP DEFAULT date_trunc('second', now()),
 	PRIMARY KEY (email, trip_id),
 	FOREIGN KEY (email) REFERENCES customer (email),
 	FOREIGN KEY (trip_id) REFERENCES trip (trip_id));
