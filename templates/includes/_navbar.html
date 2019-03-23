@@ -9,14 +9,21 @@
 
     <div class="navbar-collapse collapse order-1 order-md-0 dual-collapse2">
       <ul class="navbar-nav mr-auto">
-        <li class="nav-item"><a class="nav-link" href="/trips/">Trips</a></li>
+        {% if session.admin %}
+          <li class="nav-item"><a class="nav-link" href="/trips/">Admin 1</a></li>
+          <li class="nav-item"><a class="nav-link" href="/trips/">Admin 2</a></li>
+        {% elif session.logged_in %}
+          <li class="nav-item"><a class="nav-link" href="/trips/">Trips</a></li>
+        {% endif %}
       </ul>
     </div>
 
     <div class="navbar-collapse collapse order-3 dual-collapse2">
       <ul class="navbar-nav ml-auto">
-        {% if session.logged_in %}
-          <li class="nav-item"><a class="nav-link" href="/my_trips/">My bookings</a></li>
+        {% if session.admin %}
+          <li class="nav-item"><a class="nav-link" href="/logout/">Log out</a></li>
+        {% elif session.logged_in %}
+          <li class="nav-item"><a class="nav-link" href="/my_bookings/">My bookings</a></li>
           <li class="nav-item"><a class="nav-link" href="/logout/">Log out</a></li>
         {% else %}
           <li class="nav-item"><a class="nav-link" href="/register/">Register account</a></li>
