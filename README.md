@@ -75,7 +75,7 @@ $ pip install psycopg2
 
 ### Flask-bcrypt
 
-Passlib is used to encrypt passwords stored in the database. Install flask-bcrypt with the following command:
+Flask-bcrypt is used to encrypt passwords stored in the database. Install flask-bcrypt with the following command:
 
 ```
 $ pip install flask-bcrypt
