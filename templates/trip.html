@@ -11,11 +11,12 @@
 
     <section>
       <div class="container">
-        <h2 class="display-5">{{ trip_info.startdest }} - {{ trip_info.enddest }}</h2>
-        <p>Departure {{ trip_info.starttime }} from <i>adress</i><br>
-        Arrival {{ trip_info.arrival }} to <i>adress</i><br>
+        <h2 class="display-5">{{ trip_info.startdest }}, {{ trip_info.startcountry }} - {{ trip_info.enddest }}, {{ trip_info.arrivalcountry }}</h2>
+        <p>Departure: {{ trip_info.starttime }} from <i>{{ trip_info.startstreet }}</i><br>
+        Arrival: {{ trip_info.arrival }} to <i>{{ trip_info.arrivalstreet }}</i><br>
         Price: {{ trip_info.price }} kr/person.<br>
-        {{ trip_info.empty_seats }} available seats.</p>
+        Available seats: {{ trip_info.empty_seats }}<br>
+        Driver: {{ trip_info.firstname }} {{ trip_info.lastname }}</p>
         <p>How many tickets do you want?</p>
 
         {% from "includes/_formhelpers.html" import render_field %}
