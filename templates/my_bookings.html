@@ -1,0 +1,48 @@
+{% extends "layout.html" %}
+
+{% block body %}
+
+  <main>
+    <section>
+      <div class="container">
+        <h1 class="display-4">My bookings</h1>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <div class="container">
+          {% if bookings %}
+            <p class="lead">You can edit or read more about your bookings</p>
+          <table class="table">
+            <tr>
+              <th>From</th>
+              <th>To</th>
+              <th>Departure</th>
+              <th>Arrival</th>
+              <th>Tickets</th>
+            </tr>
+
+            {% for booking in bookings %}
+              <tr>
+                <td>{{ booking.startdest }}</td>
+                <td>{{ booking.enddest }}</td>
+                <td>{{ booking.starttime }}</td>
+                <td>{{ booking.arrival }}</td>
+                <td>{{ booking.nr_of_seats }}</td>
+                <td><a href="/trip/{{ booking.trip_id }}" class="btn btn-success">Learn more</a></td>
+                <td><a href="/edit_booking/{{ booking.trip_id }}" class="btn btn-primary">Edit booking</a></td>
+              </tr>
+            {% endfor %}
+          </table>
+          {% else %}
+            <p class="lead">You have no bookings at the moment</p>
+            <a href="/trips/" class="btn btn-primary">Browse trips</a>
+          {% endif %}
+
+        </div>
+      </div>
+    </section>
+  </main>
+
+{% endblock %}
