@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, flash, redirect, url_for, session
+from flask_admin import Admin
 from flask_bcrypt import Bcrypt
-from passlib.hash import sha256_crypt
 from functools import wraps
 from forms import RegistrationForm, LoginForm
 import db_functions
@@ -11,7 +11,9 @@ from datetime import datetime
 
 
 app = Flask(__name__)
+admin = Admin(app)
 bcrypt = Bcrypt(app)
+
 
 
 def is_logged_in(f):
@@ -39,7 +41,7 @@ def register():
     form = RegistrationForm(request.form)
 
     if request.method == "GET":
-        return render_template("register.html", form=form, title="Registrera")
+        return render_template("register.html", form=form, title="Register")
 
     elif request.method == "POST" and form.validate():
         try:
@@ -51,8 +53,8 @@ def register():
             post_nr = form.post_nr.data
             street = form.street.data.strip().title()
             tel_nr = form.tel_nr.data
-            # password = sha256_crypt.hash(str(form.password.data))
-            password = bcrypt.generate_password_hash(form.password.data).decode("utf-8")
+            password = bcrypt.generate_password_hash(
+                       form.password.data).decode("utf-8")
 
             conn = db_functions.create_db_conn()
             cur = db_functions.create_db_cur(conn)
@@ -66,7 +68,6 @@ def register():
             cur.close()
             conn.close()
 
-            # Automatically logs user in after registration
             session["logged_in"] = True
             session["email"] = email
 
@@ -80,10 +81,13 @@ def register():
 
 @app.route("/login/", methods=["GET", "POST"])
 def login():
-    """ Logs in a user if email and password match """
+    """ Customer log in """
     form = LoginForm(request.form)
 
-    if request.method == "POST":
+    if request.method == "GET":
+        return render_template("login.html", form=form, title="Log in")
+
+    elif request.method == "POST":
         email = request.form["email"]
         password_candidate = request.form["password"]
 
@@ -94,11 +98,12 @@ def login():
         cur.execute("SELECT * FROM customer WHERE email = %s",
                              (email,))
         data = cur.fetchone()
+        cur.close()
+        conn.close()
 
         if data != None:
             password_hash = data["password"]
             email = data["email"]
-            # if sha256_crypt.verify(password_candidate, password):
             if bcrypt.check_password_hash(password_hash, password_candidate):
                 session["logged_in"] = True
                 session["email"] = email
@@ -108,13 +113,49 @@ def login():
             else:
                 flash("Email and password does not match", "danger")
                 return render_template("login.html", form=form)
-            cur.close()
         else:
             flash("Email and password does not match",
             "danger")
-            return render_template("login.html", form=form)
-    else:
-        return render_template("login.html", form=form, title="Logga in")
+            return redirect(url_for("login"))
+
+
+@app.route("/admin_login/", methods=["GET", "POST"])
+def admin_login():
+    """ Admin log in """
+    form = LoginForm(request.form)
+
+    if request.method == "GET":
+        return render_template("admin_login.html", form=form, title="Admin Login")
+
+    elif request.method == "POST":
+        email = request.form["email"]
+        password_candidate = request.form["password"]
+
+        conn = db_functions.create_db_conn()
+        cur = db_functions.create_db_cur(conn)
+
+        # Pulls data about an admin with a certain email, if there is one
+        cur.execute("SELECT * FROM admin WHERE email = %s",
+                             (email,))
+        data = cur.fetchone()
+        cur.close()
+        conn.close()
+
+        if data != None:
+            password_hash = data["password"]
+            email = data["email"]
+            if bcrypt.check_password_hash(password_hash, password_candidate):
+                session["logged_in"] = True
+                session["email"] = email
+                session["admin"] = True
+                flash("Welcome, Boss", "success")
+                return redirect(url_for("index"))
+            else:
+                flash("Email and password does not match", "danger")
+                return redirect(url_for("login"))
+        else:
+            flash("Email and password does not match", "danger")
+            return redirect(url_for("admin_login"))
 
 
 @app.route("/logout/")
@@ -147,12 +188,18 @@ def trip(trip_id):
     """ Shows informaion about a single trip """
     conn = db_functions.create_db_conn()
     cur = db_functions.create_db_cur(conn)
-    # Fixa join med City så att gatuadress hämtas
 
-    # Pulls data about a specific trip
-
-    cur.execute("SELECT * FROM trip WHERE trip_id = %s",
+    # Pulls all relevant data about an individual trip by trip_id
+    cur.execute("""SELECT t.trip_id, t.startdest, t.enddest, t.starttime,
+    t.arrival, t.price, t.empty_seats, d.firstname, d.lastname,
+    c1.street AS startstreet, c2.street AS arrivalstreet,
+    c1.country AS startcountry, c2.country AS arrivalcountry
+    FROM trip AS t
+    JOIN city AS c1 ON t.startdest = c1.city_name
+    JOIN city AS c2 ON t.enddest = c2.city_name
+    JOIN driver AS d ON t.driver = d.pers_nr AND t.trip_id = %s""",
     (trip_id,))
+
     trip_info = cur.fetchone()
 
     if request.method == "GET":
@@ -162,7 +209,6 @@ def trip(trip_id):
         try:
             nr_of_seats = request.form["nr_of_seats"]
             seats_left = int(trip_info["empty_seats"]) - int(nr_of_seats)
-            # cur = db.cursor(dictionary=True)
 
             # Registers the booking
             cur.execute("INSERT INTO booking VALUES (%s, %s, %s)",
@@ -178,16 +224,16 @@ def trip(trip_id):
             conn.commit()
             cur.close()
             conn.close()
-            return redirect(url_for("my_trips"))
+            return redirect(url_for("my_bookings"))
         except: # Fix so that the specific exception is caught!
             flash('You have already booked this trip. Go to "My bookings"\
                    if you want to edit your booking.', 'success')
             return render_template("trip.html", trip_info=trip_info)
 
 
-@app.route("/my_trips/")
+@app.route("/my_bookings/")
 @is_logged_in
-def my_trips():
+def my_bookings():
     """ Shows a user all of their bookings, if there are any """
     conn = db_functions.create_db_conn()
     cur = db_functions.create_db_cur(conn)
@@ -202,16 +248,16 @@ def my_trips():
     ORDER BY starttime""",
     (session["email"],))
 
-    trips = cur.fetchall()
+    bookings = cur.fetchall()
 
-    if len(trips) != 0:
-        return render_template("my_trips.html", trips=trips)
-    return render_template("my_trips.html")
+    if len(bookings) != 0:
+        return render_template("my_bookings.html", bookings=bookings)
+    return render_template("my_bookings.html")
 
 
-@app.route("/edit_trip/<trip_id>", methods=["GET", "POST"])
+@app.route("/edit_booking/<trip_id>", methods=["GET", "POST"])
 @is_logged_in
-def edit_trip(trip_id):
+def edit_booking(trip_id):
     """ Edits the amount of seats in a user's booking """
     conn = db_functions.create_db_conn()
     cur = db_functions.create_db_cur(conn)
@@ -231,7 +277,7 @@ def edit_trip(trip_id):
     conn.close()
 
     if request.method == "GET":
-        return render_template("edit_trip.html", trip_data=trip_data)
+        return render_template("edit_booking.html", trip_data=trip_data)
 
     elif request.method == "POST":
         updated_nr_of_seats = int(request.form["nr_of_seats"])
@@ -242,9 +288,8 @@ def edit_trip(trip_id):
         cur.execute("""UPDATE booking SET nr_of_seats = %s,
         last_edit_timestamp = %s WHERE email = %s
         AND trip_id = %s""",
-
-        # Want to have current datetime without microseconds
         (updated_nr_of_seats, datetime.now(), session["email"], trip_id))
+        # Want to have current datetime without microseconds
 
         diff_amount_of_seats = trip_data["nr_of_seats"] - updated_nr_of_seats
         updated_empty_seats = trip_data["empty_seats"] + diff_amount_of_seats
@@ -259,7 +304,7 @@ def edit_trip(trip_id):
         cur.close()
         conn.close()
         flash("Your changes has been saved", "success")
-        return redirect(url_for("my_trips"))
+        return redirect(url_for("my_bookings"))
 
 
 @app.route("/cancel_booking/<trip_id>", methods=["POST"])
@@ -281,7 +326,7 @@ def cancel_booking(trip_id):
         # data["nr_of_seats"] generates TypeError if
         # the query above finds no match
         flash("You have not booked this trip", "success")
-        return redirect(url_for("my_trips"))
+        return redirect(url_for("my_bookings"))
 
     # Removes a user's booking
     cur.execute("DELETE FROM booking WHERE trip_id = %s AND email = %s",
@@ -297,7 +342,7 @@ def cancel_booking(trip_id):
     cur.close()
     conn.close()
     flash("Your booking has been removed", "success")
-    return redirect(url_for("my_trips"))
+    return redirect(url_for("my_bookings"))
 
 
 if __name__ == "__main__":
