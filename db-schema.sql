@@ -65,3 +65,12 @@ CREATE TABLE booking
 	PRIMARY KEY (email, trip_id),
 	FOREIGN KEY (email) REFERENCES customer (email),
 	FOREIGN KEY (trip_id) REFERENCES trip (trip_id));
+
+
+	CREATE TABLE admin
+		(email VARCHAR(50) NOT NULL,
+		firstname VARCHAR(30) NOT NULL,
+		lastname VARCHAR(30) NOT NULL,
+		password VARCHAR(100) NOT NULL,
+		registration_timestamp TIMESTAMP DEFAULT date_trunc('second', now()),
+		PRIMARY KEY (email));
