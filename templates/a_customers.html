@@ -13,11 +13,41 @@
 
     <section>
       <div class="container">
-      <h2 class="display-5">hello</h2>
+      <p class="lead">Here you can search for customers who have traveled with us a certain amount of times the last 365 days.</p>
 
+      {% from "includes/_formhelpers.html" import render_field %}
+      <form  method="POST" action="">
+        <div class="form-group">
+          {{ render_field(form.times_traveled, class_="form-control") }}
+        </div>
+        <button type="submit" class="btn btn-primary mb-4">Search</button>
+      </form>
+
+      {% if customer == None %}
+        <p class="lead">No customers match your search</p>
+      {% elif customers != None %}
+      <h2 class="display-6">Customers with {{ times_traveled }} or more trips the last 365 days</h2>
+      <table class="table">
+        <tr>
+          <th>First name</th>
+          <th>Last name</th>
+          <th>Email</th>
+          <th>Bookings</th>
+          <th>Learn more</th>
+        </tr>
+        {% for customer in customers %}
+          <tr>
+            <td>{{ customer.firstname }}</td>
+            <td>{{ customer.lastname }}</td>
+            <td>{{ customer.email }}</td>
+            <td>{{ customer.bookings }}</td>
+            <td><a href="/customer/{{ customer.customer_email }}" class="btn btn-primary">Learn more</a></td>
+          </tr>
+        {% endfor %}
+        </table>
+      {% endif %}
       </div>
     </section>
-
   </main>
 
 {% endblock body %}

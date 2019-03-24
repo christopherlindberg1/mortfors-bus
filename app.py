@@ -409,12 +409,32 @@ def our_trips():
     return render_template("a_trips.html", title="Our trips")
 
 
-@app.route("/customers/")
+@app.route("/customers/", methods=["GET", "POST"])
 def customers():
     """ Control page for customers """
     if "admin" not in session:
         return redirect(url_for("index"))
-    return render_template("a_customers.html", title="Customers")
+
+    form = forms.TimesTraveledForm(request.form)
+    if request.method == "GET":
+        return render_template("a_customers.html", form=form,
+                title="Customers")
+
+    elif request.method == "POST":
+        times_traveled = request.form["times_traveled"]
+        conn = db_functions.create_db_conn()
+        cur = db_functions.create_db_cur(conn)
+        cur.execute("""SELECT firstname, lastname, email, bookings
+        FROM nr_bookings_per_person_past_year
+        WHERE bookings >= %s""",
+        (times_traveled,))
+        customers = cur.fetchall()
+        if len(customers) != 0:
+            return render_template("a_customers.html", form=form,
+                    customers=customers, times_traveled=times_traveled,
+                    title="Customers")
+        return render_template("a_customers.html", form=form,
+                customers=None, title="Customers")
 
 
 @app.route("/create_trip/", methods=["GET", "POST"])
