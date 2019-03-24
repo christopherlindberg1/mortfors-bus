@@ -51,7 +51,7 @@ def register():
             lastname = form.lastname.data.strip().title()
             country = form.country.data.strip().title()
             city = form.city.data.strip().title()
-            post_nr = form.post_nr.data
+            zip = form.zip.data
             street = form.street.data.strip().title()
             tel_nr = form.tel_nr.data
             password = bcrypt.generate_password_hash(
@@ -64,7 +64,7 @@ def register():
             cur.execute("""INSERT INTO customer VALUES
                         (%s, %s, %s, %s, %s, %s, %s, %s, %s)""",
                         (email, firstname, lastname, country,
-                         city, post_nr, street, tel_nr, password))
+                         city, zip, street, tel_nr, password))
             conn.commit()
             cur.close()
             conn.close()
@@ -175,7 +175,7 @@ def trips():
     conn = db_functions.create_db_conn()
     cur = db_functions.create_db_cur(conn)
     cur.execute("""SELECT * FROM trip WHERE empty_seats != 0
-                    ORDER BY startdest, enddest, starttime""");
+                    ORDER BY startdest, enddest, departure""");
     trips = cur.fetchall()
     cur.close()
     conn.close()
@@ -193,7 +193,7 @@ def trip(trip_id):
     cur = db_functions.create_db_cur(conn)
 
     # Pulls all relevant data about an individual trip by trip_id
-    cur.execute("""SELECT t.trip_id, t.startdest, t.enddest, t.starttime,
+    cur.execute("""SELECT t.trip_id, t.startdest, t.enddest, t.departure,
     t.arrival, t.price, t.empty_seats, d.firstname, d.lastname,
     c1.street AS startstreet, c2.street AS arrivalstreet,
     c1.country AS startcountry, c2.country AS arrivalcountry
@@ -246,12 +246,12 @@ def my_bookings():
 
     # Pulls information about all bookings for a certain user
     cur.execute("""
-    SELECT t.trip_id, t.startdest, t.enddest, t.starttime,
+    SELECT t.trip_id, t.startdest, t.enddest, t.departure,
     t.arrival, b.nr_of_seats
     FROM trip as t
     JOIN booking as b
     ON b.email = %s AND t.trip_id = b.trip_id
-    ORDER BY starttime""",
+    ORDER BY departure""",
     (session["email"],))
 
     bookings = cur.fetchall()
@@ -274,7 +274,7 @@ def edit_booking(trip_id):
     # Pulls information about a specific booking
     cur.execute("""
     SELECT b.email, b.trip_id, b.nr_of_seats,
-    t.trip_id, t.startdest, t.enddest, t.starttime,
+    t.trip_id, t.startdest, t.enddest, t.departure,
     t.arrival, t.price, t.empty_seats
     FROM booking as b
     JOIN trip as t
@@ -365,11 +365,13 @@ def admin_cp():
     return render_template("a_admin_cp.html", title="Control Panel")
 
 
-@app.route("/destinations/")
+@app.route("/destinations/", methods=["GET", "POST"])
 def destinations():
     """ Control page for destinations """
     if "admin" not in session:
         return redirect(url_for("index"))
+
+    form = forms.AddDestinationForm(request.form)
 
     conn = db_functions.create_db_conn()
     cur = db_functions.create_db_cur(conn)
@@ -378,8 +380,25 @@ def destinations():
     cur.close()
     conn.close()
 
-    return render_template("a_destinations.html", destinations=destinations,
-            title="Destinations")
+    if request.method == "GET":
+        return render_template("a_destinations.html", form=form,
+                destinations=destinations, title="Destinations")
+
+    elif request.method == "POST":
+        city_name = request.form["city_name"].strip().title()
+        country = request.form["country"]
+        zip = request.form["zip"]
+        street = request.form["street"].strip().title()
+
+        conn = db_functions.create_db_conn()
+        cur = db_functions.create_db_cur(conn)
+        cur.execute("INSERT INTO city VALUES (%s, %s, %s, %s)",
+                    (city_name, country, zip, street))
+        conn.commit()
+        cur.close()
+        conn.close()
+        flash(f"{city_name} has been added to your list of destinations")
+        return redirect(url_for("destinations"))
 
 
 @app.route("/a_trips/")

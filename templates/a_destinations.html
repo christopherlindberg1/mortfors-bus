@@ -8,6 +8,7 @@
     <section>
       <div class="container">
         <h1 class="display-4">Destinations</h1>
+        <p class="lead">Below are your current destinations. <a href="#add_destination">Click here to add a new destination.</a>
       </div>
     </section>
 
@@ -25,7 +26,7 @@
             <tr>
               <td>{{ destination.city_name }}</td>
               <td>{{ destination.country }}</td>
-              <td>{{ destination.post_nr }}</td>
+              <td>{{ destination.zip }}</td>
               <td>{{ destination.street }}</td>
             </tr>
           {% endfor %}
@@ -33,6 +34,32 @@
         {% else %}
           <p class="lead">There are no destinations registered</p>
         {% endif %}
+      </div>
+    </section>
+
+    <section id="add_destination">
+      <div class="container">
+        <h3 class="display-6">Add destination</h3>
+        {% from "includes/_formhelpers.html" import render_field %}
+				<form  method="POST" action="">
+          <div class="row">
+            <div class="form-group col-xl-6">
+  						{{ render_field(form.city_name, class_="form-control") }}
+  					</div>
+  					<div class="form-group col-xl-6">
+  						{{ render_field(form.country, class_="form-control") }}
+  					</div>
+          </div>
+          <div class="row">
+            <div class="form-group col-xl-6">
+  						{{ render_field(form.zip, class_="form-control") }}
+  					</div>
+            <div class="form-group col-xl-6">
+  						{{ render_field(form.street, class_="form-control") }}
+  					</div>
+          </div>
+					<button type="submit" class="btn btn-primary form-submit-btn mt-1 mb-4">Add Destination</button>
+				</form>
       </div>
     </section>
 
