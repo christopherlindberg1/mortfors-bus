@@ -75,3 +75,14 @@ CREATE TABLE admin
 	password VARCHAR(100) NOT NULL,
 	registration_timestamp TIMESTAMP DEFAULT date_trunc('second', now()),
 	PRIMARY KEY (email));
+
+
+-- View for nr of bookings per person last 365 days
+CREATE VIEW nr_bookings_per_person_past_year as
+SELECT c.firstname, c.lastname, c.email, count(b.email) AS bookings
+FROM customer as c
+JOIN booking as b
+ON c.email = b.email
+WHERE booking_timestamp > CURRENT_TIMESTAMP - INTERVAL '365 days'
+GROUP BY c.email
+ORDER BY bookings DESC;
