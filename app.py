@@ -1,5 +1,4 @@
 from flask import Flask, render_template, request, flash, redirect, url_for, session
-from flask_admin import Admin
 from flask_bcrypt import Bcrypt
 from functools import wraps
 import forms
@@ -12,9 +11,7 @@ from datetime import datetime
 
 
 app = Flask(__name__)
-admin = Admin(app)
 bcrypt = Bcrypt(app)
-
 
 
 def is_logged_in(f):
@@ -39,6 +36,9 @@ def index():
 @app.route("/register/", methods=["GET", "POST"])
 def register():
     """ Registers a new user """
+    if session:
+        return redirect(url_for("index"))
+
     form = forms.RegistrationForm(request.form)
 
     if request.method == "GET":
@@ -77,7 +77,7 @@ def register():
         except:
            flash("An account is already registered with this email address",
                  "danger")
-           return redirect(url_for("register"))
+           return redirect(url_for("/customer/register"))
 
 
 @app.route("/login/", methods=["GET", "POST"])
@@ -87,7 +87,6 @@ def login():
         return redirect(url_for("index"))
 
     form = forms.LoginForm(request.form)
-
     if request.method == "GET":
         return render_template("login.html", form=form, title="Log in")
 
@@ -130,9 +129,8 @@ def admin_login():
         return redirect(url_for("index"))
 
     form = forms.LoginForm(request.form)
-
     if request.method == "GET":
-        return render_template("admin_login.html", form=form, title="Admin Login")
+        return render_template("a_admin_login.html", form=form, title="Admin Login")
 
     elif request.method == "POST":
         email = request.form["email"]
@@ -158,10 +156,8 @@ def admin_login():
                 flash("Welcome, Boss", "success")
                 return redirect(url_for("admin_cp"))
             else:
-                flash("Email and password does not match", "danger")
-                return redirect(url_for("login"))
+                return redirect(url_for("admin_login"))
         else:
-            flash("Email and password does not match", "danger")
             return redirect(url_for("admin_login"))
 
 
@@ -242,6 +238,9 @@ def trip(trip_id):
 @is_logged_in
 def my_bookings():
     """ Shows a user all of their bookings, if there are any """
+    if "admin" in session:
+        return redirect(url_for("admin_cp"))
+
     conn = db_functions.create_db_conn()
     cur = db_functions.create_db_cur(conn)
 
@@ -266,6 +265,9 @@ def my_bookings():
 @is_logged_in
 def edit_booking(trip_id):
     """ Edits the amount of seats in a user's booking """
+    if "admin" in session:
+        return redirect(url_for("admin_cp"))
+
     conn = db_functions.create_db_conn()
     cur = db_functions.create_db_cur(conn)
 
@@ -318,6 +320,9 @@ def edit_booking(trip_id):
 @is_logged_in
 def cancel_booking(trip_id):
     """ Cancels a user's booking """
+    if "admin" in session:
+        return redirect(url_for("admin_cp"))
+
     conn = db_functions.create_db_conn()
     cur = db_functions.create_db_cur(conn)
 
@@ -356,7 +361,50 @@ def cancel_booking(trip_id):
 def admin_cp():
     if "admin" not in session:
         return redirect(url_for("index"))
-    return render_template("admin_cp.html")
+    return render_template("a_admin_cp.html", title="Control Panel")
+
+
+@app.route("/destinations/")
+def destinations():
+    if "admin" not in session:
+        return redirect(url_for("index"))
+
+    conn = db_functions.create_db_conn()
+    cur = db_functions.create_db_cur(conn)
+    cur.execute("SELECT * FROM city ORDER BY country, city")
+    destinations = cur.fetchall()
+    cur.close()
+    conn.close()
+
+    return render_template("a_destinations.html", destinations=destinations,
+            title="Destinations")
+
+
+@app.route("/a_trips/")
+def our_trips():
+    if "admin" not in session:
+        return redirect(url_for("index"))
+    return render_template("a_trips.html", title="Our trips")
+
+
+@app.route("/customers/")
+def customers():
+    if "admin" not in session:
+        return redirect(url_for("index"))
+    return render_template("a_customers.html", title="Customers")
+
+
+@app.route("/create_trip/", methods=["GET", "POST"])
+def create_trip():
+    if "admin" not in session:
+        return redirect(url_for("index"))
+
+    form = forms.CreateTripForm(request.form)
+    if request.method == "GET":
+        return render_template("a_create_trip.html", form=form)
+
+    elif request.method == "POST":
+        pass
 
 
 if __name__ == "__main__":

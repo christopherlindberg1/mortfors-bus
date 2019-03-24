@@ -1,6 +1,6 @@
 from wtforms import Form, StringField, TextAreaField, PasswordField
 from wtforms import SelectField, BooleanField, IntegerField
-from wtforms.validators import Email, DataRequired, EqualTo, Optional
+from wtforms.validators import Email, DataRequired, EqualTo, NumberRange
 import countries
 import destinations
 
@@ -33,10 +33,10 @@ class AddDestinationForm(Form):
 
 
 class CreateTripForm(Form):
-    startdest = SelectField(u"City", choices=destinations.destinations)
-    enddest = SelectField(u"City", choices=destinations.destinations)
+    # startdest = SelectField(u"City", choices=destinations.destinations)
+    # enddest = SelectField(u"City", choices=destinations.destinations)
     # departure = # Timestamp
     # arrival = # Timestamp
-    price = IntegerField("price", 99)
-    driver = SelectField(u"City", choices=drivers.drivers,
-            validators=[Optional()])
+    price = StringField("Price")
+    # driver = SelectField(u"City", choices=drivers.drivers,
+    #         validators=[Optional()])
