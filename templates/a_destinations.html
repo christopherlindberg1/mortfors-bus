@@ -1,0 +1,41 @@
+{% extends "layout.html" %}
+
+{% block body %}
+
+{% include "includes/_admin_nav.html" %}
+
+  <main>
+    <section>
+      <div class="container">
+        <h1 class="display-4">Destinations</h1>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        {% if destinations %}
+        <table class="table">
+          <tr>
+            <th>City</th>
+            <th>Country</th>
+            <th>ZIP</th>
+            <th>Street</th>
+          </tr>
+          {% for destination in destinations %}
+            <tr>
+              <td>{{ destination.city_name }}</td>
+              <td>{{ destination.country }}</td>
+              <td>{{ destination.post_nr }}</td>
+              <td>{{ destination.street }}</td>
+            </tr>
+          {% endfor %}
+        </table>
+        {% else %}
+          <p class="lead">There are no destinations registered</p>
+        {% endif %}
+      </div>
+    </section>
+
+  </main>
+
+{% endblock body %}

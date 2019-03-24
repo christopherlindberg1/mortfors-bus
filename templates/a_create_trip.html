@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+
+{% block body %}
+  <main>
+    <section>
+      <div class="container">
+        <h1 class="display-4">Admin Control Panel</h1>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <h2 class="display-5">Create a new trip</h2>
+        {% from "includes/_formhelpers.html" import render_field %}
+				<form  method="POST" action="">
+				
+          <div class="form-group">
+						{{ render_field(form.price, class_="form-control") }}
+					</div>
+					<button type="submit" class="btn btn-primary form-submit-btn mt-1 mb-1">Log in</button>
+				</form>
+      </div>
+    </section>
+
+  </main>
+{% endblock body %}

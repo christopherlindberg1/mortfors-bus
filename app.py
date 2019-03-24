@@ -359,6 +359,7 @@ def cancel_booking(trip_id):
 
 @app.route("/admin_cp/")
 def admin_cp():
+    """ Admin control panel """
     if "admin" not in session:
         return redirect(url_for("index"))
     return render_template("a_admin_cp.html", title="Control Panel")
@@ -366,6 +367,7 @@ def admin_cp():
 
 @app.route("/destinations/")
 def destinations():
+    """ Control page for destinations """
     if "admin" not in session:
         return redirect(url_for("index"))
 
@@ -382,6 +384,7 @@ def destinations():
 
 @app.route("/a_trips/")
 def our_trips():
+    """ Control page for trips """
     if "admin" not in session:
         return redirect(url_for("index"))
     return render_template("a_trips.html", title="Our trips")
@@ -389,6 +392,7 @@ def our_trips():
 
 @app.route("/customers/")
 def customers():
+    """ Control page for customers """
     if "admin" not in session:
         return redirect(url_for("index"))
     return render_template("a_customers.html", title="Customers")
@@ -396,6 +400,7 @@ def customers():
 
 @app.route("/create_trip/", methods=["GET", "POST"])
 def create_trip():
+    """ Route for creating a new trip """
     if "admin" not in session:
         return redirect(url_for("index"))
 
