@@ -2,8 +2,9 @@ from flask import Flask, render_template, request, flash, redirect, url_for, ses
 from flask_admin import Admin
 from flask_bcrypt import Bcrypt
 from functools import wraps
-from forms import RegistrationForm, LoginForm
+import forms
 import db_functions
+import destinations
 import sys
 sys.path.append("../")
 import config
@@ -38,7 +39,7 @@ def index():
 @app.route("/register/", methods=["GET", "POST"])
 def register():
     """ Registers a new user """
-    form = RegistrationForm(request.form)
+    form = forms.RegistrationForm(request.form)
 
     if request.method == "GET":
         return render_template("register.html", form=form, title="Register")
@@ -82,7 +83,10 @@ def register():
 @app.route("/login/", methods=["GET", "POST"])
 def login():
     """ Customer log in """
-    form = LoginForm(request.form)
+    if session:
+        return redirect(url_for("index"))
+
+    form = forms.LoginForm(request.form)
 
     if request.method == "GET":
         return render_template("login.html", form=form, title="Log in")
@@ -122,7 +126,10 @@ def login():
 @app.route("/admin_login/", methods=["GET", "POST"])
 def admin_login():
     """ Admin log in """
-    form = LoginForm(request.form)
+    if session:
+        return redirect(url_for("index"))
+
+    form = forms.LoginForm(request.form)
 
     if request.method == "GET":
         return render_template("admin_login.html", form=form, title="Admin Login")
@@ -149,7 +156,7 @@ def admin_login():
                 session["email"] = email
                 session["admin"] = True
                 flash("Welcome, Boss", "success")
-                return redirect(url_for("index"))
+                return redirect(url_for("admin_cp"))
             else:
                 flash("Email and password does not match", "danger")
                 return redirect(url_for("login"))
@@ -343,6 +350,13 @@ def cancel_booking(trip_id):
     conn.close()
     flash("Your booking has been removed", "success")
     return redirect(url_for("my_bookings"))
+
+
+@app.route("/admin_cp/")
+def admin_cp():
+    if "admin" not in session:
+        return redirect(url_for("index"))
+    return render_template("admin_cp.html")
 
 
 if __name__ == "__main__":
