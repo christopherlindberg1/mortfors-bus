@@ -3,6 +3,10 @@ body {
 	font-size: 16px;
 }
 
+html {
+	scroll-behavior: smooth;
+}
+
 nav {
 	background-color: #222;
 }

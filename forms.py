@@ -28,7 +28,7 @@ class LoginForm(Form):
 class AddDestinationForm(Form):
     city_name = StringField("City", validators=[DataRequired()])
     country = SelectField(u"Country", choices=countries.countries)
-    post_nr = StringField("ZIP code", validators=[DataRequired()])
+    zip = StringField("ZIP code", validators=[DataRequired()])
     street = StringField("Street", validators=[DataRequired()])
 
 

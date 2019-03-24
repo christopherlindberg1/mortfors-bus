@@ -33,7 +33,7 @@ CREATE TABLE driver
 CREATE TABLE city
 	(city_name VARCHAR(30) NOT NULL,
 	country VARCHAR(30) NOT NULL,			-- country the city belongs to
-	post_nr VARCHAR(10) NOT NULL,			-- ZIP code for bus stop
+	zip VARCHAR(10) NOT NULL,			-- ZIP code for bus stop
 	street VARCHAR(30) NOT NULL,			-- street address for the bus stop
 	PRIMARY KEY (city_name));
 
@@ -43,7 +43,7 @@ CREATE TABLE trip
 	(trip_id SERIAL,
 	startdest VARCHAR(30) NOT NULL,		-- city of the start destination
 	enddest VARCHAR(30) NOT NULL,			-- city of the end destination
-	starttime TIMESTAMP NOT NULL,  		-- date and time for when the trip begins
+	departure TIMESTAMP NOT NULL,  		-- date and time for when the trip begins
 	arrival TIMESTAMP NOT NULL,  			-- date and time for when the bus arrives
 	price INT NOT NULL,  							-- price per person
 	empty_seats INT NOT NULL,  				-- nr of available seats
@@ -66,6 +66,8 @@ CREATE TABLE booking
 	FOREIGN KEY (email) REFERENCES customer (email),
 	FOREIGN KEY (trip_id) REFERENCES trip (trip_id));
 
+
+-- table for admins
 CREATE TABLE admin
 	(email VARCHAR(50) NOT NULL,
 	firstname VARCHAR(30) NOT NULL,
