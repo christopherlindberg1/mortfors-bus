@@ -23,7 +23,9 @@
         <button type="submit" class="btn btn-primary mb-4">Search</button>
       </form>
 
-      {% if customer == None %}
+      {% if customers == "no search" %}
+
+      {% elif customers == None %}
         <p class="lead">No customers match your search</p>
       {% elif customers != None %}
       <h2 class="display-6">Customers with {{ times_traveled }} or more trips the last 365 days</h2>

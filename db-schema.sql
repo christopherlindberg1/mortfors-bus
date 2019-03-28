@@ -8,7 +8,7 @@ CREATE TABLE customer
 	lastname VARCHAR(30) NOT NULL,
 	country VARCHAR(30) NOT NULL,
 	city VARCHAR(30) NOT NULL,
-	post_nr VARCHAR(10) NOT NULL,
+	zip VARCHAR(10) NOT NULL,
 	street VARCHAR(30) NOT NULL,
 	tel_nr VARCHAR(15),
 	password VARCHAR(100) NOT NULL,
@@ -23,7 +23,7 @@ CREATE TABLE driver
 	lastname VARCHAR(30) NOT NULL,
 	country VARCHAR(30) NOT NULL,
 	city VARCHAR(30) NOT NULL,
-	post_nr VARCHAR(10) NOT NULL,
+	zip VARCHAR(10) NOT NULL,
 	street VARCHAR(30) NOT NULL,
 	tel_nr VARCHAR(15) NOT NULL,
 	PRIMARY KEY (pers_nr));
@@ -75,6 +75,12 @@ CREATE TABLE admin
 	password VARCHAR(100) NOT NULL,
 	registration_timestamp TIMESTAMP DEFAULT date_trunc('second', now()),
 	PRIMARY KEY (email));
+
+
+-- View for bookings last 365 days
+CREATE VIEW bookings_past_year as
+SELECT * FROM booking
+WHERE booking_timestamp > current_timestamp - interval '365 days'
 
 
 -- View for nr of bookings per person last 365 days

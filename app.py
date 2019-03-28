@@ -11,6 +11,7 @@ from datetime import datetime
 
 
 app = Flask(__name__)
+app.config["SECRET_KEY"] = config.secret_key
 bcrypt = Bcrypt(app)
 
 
@@ -40,27 +41,23 @@ def register():
         return redirect(url_for("index"))
 
     form = forms.RegistrationForm(request.form)
-
     if request.method == "GET":
         return render_template("register.html", form=form, title="Register")
-
-    elif request.method == "POST" and form.validate():
+    elif request.method == "POST":
         try:
             email = form.email.data
             firstname = form.firstname.data.strip().title()
             lastname = form.lastname.data.strip().title()
             country = form.country.data.strip().title()
             city = form.city.data.strip().title()
-            zip = form.zip.data
+            zip = form.zip.data.strip()
             street = form.street.data.strip().title()
-            tel_nr = form.tel_nr.data
+            tel_nr = form.tel_nr.data.strip()
             password = bcrypt.generate_password_hash(
                        form.password.data).decode("utf-8")
 
             conn = db_functions.create_db_conn()
             cur = db_functions.create_db_cur(conn)
-
-            # Registers a new user
             cur.execute("""INSERT INTO customer VALUES
                         (%s, %s, %s, %s, %s, %s, %s, %s, %s)""",
                         (email, firstname, lastname, country,
@@ -77,7 +74,7 @@ def register():
         except:
            flash("An account is already registered with this email address",
                  "danger")
-           return redirect(url_for("/customer/register"))
+           return redirect(url_for("register"))
 
 
 @app.route("/login/", methods=["GET", "POST"])
@@ -119,7 +116,7 @@ def login():
         else:
             flash("Email and password does not match",
             "danger")
-            return redirect(url_for("login"))
+            return render_template("login.html", form=form)
 
 
 @app.route("/admin_login/", methods=["GET", "POST"])
@@ -204,6 +201,8 @@ def trip(trip_id):
     (trip_id,))
 
     trip_info = cur.fetchone()
+    if trip_info == None:
+        return redirect(url_for("trips"))
 
     if request.method == "GET":
         return render_template("trip.html", trip_info=trip_info)
@@ -223,7 +222,7 @@ def trip(trip_id):
 
             flash("Thank you for your booking", "success")
 
-            # Commits only of both queries were executed successfully
+            # Commits transaction if both queries were executed successfully
             conn.commit()
             cur.close()
             conn.close()
@@ -308,7 +307,7 @@ def edit_booking(trip_id):
         WHERE trip_id = %s""",
         (updated_empty_seats, trip_id))
 
-        # Commits only if both queries were executed successfully
+        # Commits transaction if both queries were executed successfully
         conn.commit()
         cur.close()
         conn.close()
@@ -349,7 +348,7 @@ def cancel_booking(trip_id):
                    WHERE trip_id = %s""",
                    (nr_of_seats, trip_id))
 
-    # Commits only if the two last queries were executed successfully
+    # Commits transaction if the last two queries were executed successfully
     conn.commit()
     cur.close()
     conn.close()
@@ -397,7 +396,8 @@ def destinations():
         conn.commit()
         cur.close()
         conn.close()
-        flash(f"{city_name} has been added to your list of destinations")
+        flash(f"{city_name} has been added to your list of destinations",
+               "success")
         return redirect(url_for("destinations"))
 
 
@@ -418,7 +418,7 @@ def customers():
     form = forms.TimesTraveledForm(request.form)
     if request.method == "GET":
         return render_template("a_customers.html", form=form,
-                title="Customers")
+                customers="no search", title="Customers")
 
     elif request.method == "POST":
         times_traveled = request.form["times_traveled"]
@@ -452,5 +452,4 @@ def create_trip():
 
 
 if __name__ == "__main__":
-    app.secret_key=config.secret_key
     app.run(debug=True)

@@ -6,12 +6,12 @@ from helper_data import countries, times_traveled
 
 
 class RegistrationForm(Form):
-    email = StringField("Email", validators=[Email()])
+    email = StringField("Email", validators=[Email(), DataRequired()])
     firstname = StringField("First name", validators=[DataRequired()])
     lastname = StringField("Last name", validators=[DataRequired()])
     country = SelectField(u"Country", choices=countries)
     city = StringField("City", validators=[DataRequired()])
-    post_nr = StringField("ZIP code", validators=[DataRequired()])
+    zip = StringField("ZIP code", validators=[DataRequired()])
     street = StringField("Street", validators=[DataRequired()])
     tel_nr = StringField("Phone")
     password = PasswordField("Password", validators=[DataRequired(),
@@ -20,7 +20,7 @@ class RegistrationForm(Form):
 
 
 class LoginForm(Form):
-    email = StringField("Email", validators=[Email()])
+    email = StringField("Email", validators=[Email(), DataRequired()])
     password = PasswordField("Password", validators=[DataRequired()])
     remember_me = BooleanField("Remember me")
 

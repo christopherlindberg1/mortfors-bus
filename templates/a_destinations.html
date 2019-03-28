@@ -17,15 +17,15 @@
         {% if destinations %}
         <table class="table">
           <tr>
-            <th>City</th>
             <th>Country</th>
+            <th>City</th>
             <th>ZIP</th>
             <th>Street</th>
           </tr>
           {% for destination in destinations %}
             <tr>
-              <td>{{ destination.city_name }}</td>
               <td>{{ destination.country }}</td>
+              <td>{{ destination.city_name }}</td>
               <td>{{ destination.zip }}</td>
               <td>{{ destination.street }}</td>
             </tr>
