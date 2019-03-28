@@ -43,6 +43,7 @@ def register():
     form = forms.RegistrationForm(request.form)
     if request.method == "GET":
         return render_template("register.html", form=form, title="Register")
+
     elif request.method == "POST":
         try:
             email = form.email.data
@@ -409,6 +410,20 @@ def our_trips():
     return render_template("a_trips.html", title="Our trips")
 
 
+@app.route("/create_trip/", methods=["GET", "POST"])
+def create_trip():
+    """ Route for creating a new trip """
+    if "admin" not in session:
+        return redirect(url_for("index"))
+
+    form = forms.CreateTripForm(request.form)
+    if request.method == "GET":
+        return render_template("a_create_trip.html", form=form)
+
+    elif request.method == "POST":
+        pass
+
+
 @app.route("/customers/", methods=["GET", "POST"])
 def customers():
     """ Control page for customers """
@@ -437,18 +452,29 @@ def customers():
                 customers=None, title="Customers")
 
 
-@app.route("/create_trip/", methods=["GET", "POST"])
-def create_trip():
-    """ Route for creating a new trip """
+@app.route("/customer/<email>", methods=["GET", "POST"])
+def customer_page(email):
     if "admin" not in session:
         return redirect(url_for("index"))
 
-    form = forms.CreateTripForm(request.form)
-    if request.method == "GET":
-        return render_template("a_create_trip.html", form=form)
+    conn = db_functions.create_db_conn()
+    cur = db_functions.create_db_cur(conn)
+    cur.execute("""SELECT c.email, c.firstname, c.lastname, t.startdest,
+    t.enddest, b.trip_id, count(b.trip_id) AS nr_bookings
+    FROM customer AS c
+    JOIN bookings_past_year AS b ON c.email = b.email
+    JOIN trip AS t ON t.trip_id = b.trip_id
+    WHERE c.email = %s
+    GROUP BY c.email, c.firstname, c.lastname, b.trip_id,
+    t.startdest, t.enddest""",
+    (email,))
 
-    elif request.method == "POST":
-        pass
+    trips = cur.fetchall()
+    if trips == []:
+        return redirect(url_for("customers"))
+
+    return render_template("a_customer.html",
+            trips=trips, title="Customer page")
 
 
 if __name__ == "__main__":

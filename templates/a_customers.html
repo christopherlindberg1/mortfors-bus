@@ -43,7 +43,7 @@
             <td>{{ customer.lastname }}</td>
             <td>{{ customer.email }}</td>
             <td>{{ customer.bookings }}</td>
-            <td><a href="/customer/{{ customer.customer_email }}" class="btn btn-primary">Learn more</a></td>
+            <td><a href="/customer/{{ customer.email }}" class="btn btn-primary">Learn more</a></td>
           </tr>
         {% endfor %}
         </table>
