@@ -202,6 +202,7 @@ def trip(trip_id):
     (trip_id,))
 
     trip_info = cur.fetchone()
+
     if trip_info == None:
         return redirect(url_for("trips"))
 
@@ -228,7 +229,7 @@ def trip(trip_id):
             cur.close()
             conn.close()
             return redirect(url_for("my_bookings"))
-        except: # Fix so that the specific exception is caught!
+        except:
             flash('You have already booked this trip. Go to "My bookings"\
                    if you want to edit your booking.', 'success')
             return render_template("trip.html", trip_info=trip_info)
@@ -255,6 +256,8 @@ def my_bookings():
     (session["email"],))
 
     bookings = cur.fetchall()
+    cur.close()
+    conn.close()
 
     if len(bookings) != 0:
         return render_template("my_bookings.html", bookings=bookings)
@@ -407,7 +410,49 @@ def our_trips():
     """ Control page for trips """
     if "admin" not in session:
         return redirect(url_for("index"))
-    return render_template("a_trips.html", title="Our trips")
+
+    conn = db_functions.create_db_conn()
+    cur = db_functions.create_db_cur(conn)
+    cur.execute("""SELECT t.trip_id, t.startdest, t.enddest,
+    t.departure, t.arrival, t.price, t.empty_seats,
+    d.firstname, d.lastname
+    FROM trip as t JOIN driver as d
+    ON t.driver = d.pers_nr
+    ORDER BY startdest, enddest, departure""")
+    trips = cur.fetchall()
+    cur.close()
+    conn.close()
+    print(trips)
+
+    return render_template("a_trips.html", trips=trips,
+            title="Our trips")
+
+
+@app.route("/edit_trip/<trip_id>", methods=["GET", "POST"])
+def edit_trip(trip_id):
+    if "admin" not in session:
+        return redirect(url_for("index"))
+
+    if request.method == "GET":
+        conn = db_functions.create_db_conn()
+        cur = db_functions.create_db_cur(conn)
+        cur.execute("""SELECT t.startdest, t.enddest, t.departure,
+        t.arrival, t.price, t.empty_seats,
+        d.firstname, d.lastname
+        FROM trip as t JOIN driver as d
+        ON t.driver = d.pers_nr
+        WHERE t.trip_id = %s""",
+        (trip_id,))
+
+        data = cur.fetchone()
+
+        cur.close()
+        conn.close()
+        print(data)
+
+        if data == None:
+            return redirect(url_for("our_trips"))
+        return render_template("a_trip.html", data=data)
 
 
 @app.route("/create_trip/", methods=["GET", "POST"])
@@ -444,6 +489,9 @@ def customers():
         WHERE bookings >= %s""",
         (times_traveled,))
         customers = cur.fetchall()
+        cur.close()
+        conn.close()
+
         if len(customers) != 0:
             return render_template("a_customers.html", form=form,
                     customers=customers, times_traveled=times_traveled,
@@ -470,6 +518,9 @@ def customer_page(email):
     (email,))
 
     trips = cur.fetchall()
+    cur.close()
+    conn.close()
+
     if trips == []:
         return redirect(url_for("customers"))
 

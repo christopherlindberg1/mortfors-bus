@@ -13,19 +13,35 @@
 
     <section>
       <div class="container">
-        <div class="row">
-          <div class="col-md-6">
-            <h3 class="display-6">Weekly trips</h3>
-            <p class="lead">Here you can insert new trips that will automatically be craeted for every week.</p>
-          </div>
-          <div class="col-md-6">
-            <h3 class="display-6">Current trips</h3>
-            <p class="lead">Here you can edit information about trips that customer can book. For example, you can add / change the driver.</p>
-          </div>
-        </div>
+        {% if trips %}
+        <table class="table">
+          <tr>
+            <th>From</th>
+            <th>To</th>
+            <th>Deprature</th>
+            <th>Arrival</th>
+            <th>Price</th>
+            <th>Available seats</th>
+            <th>Driver</th>
+          </tr>
+          {% for trip in trips %}
+            <tr>
+              <td>{{ trip.startdest }}</td>
+              <td>{{ trip.enddest }}</td>
+              <td>{{ trip.departure }}</td>
+              <td>{{ trip.arrival }}</td>
+              <td>{{ trip.price }} kr</td>
+              <td>{{ trip.empty_seats }}</td>
+              <td>{{ trip.firstname }} {{ trip.lastname }}</td>
+              <td><a href="/edit_trip/{{ trip.trip_id }}" class="btn btn-success">Learn more</a></td>
+            </tr>
+          {% endfor %}
+        </table>
+        {% else %}
+          <p class="lead">There are no trip available at the moment</p>
+        {% endif %}
       </div>
     </section>
-
   </main>
 
-{% endblock body %}
+{% endblock %}
