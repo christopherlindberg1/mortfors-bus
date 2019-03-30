@@ -1,0 +1,36 @@
+{% extends "layout.html" %}
+
+{% block body %}
+
+{% include "includes/_admin_nav.html" %}
+
+  <main>
+    <section>
+      <div class="container">
+        <h1 class="display-4">Customer info about {{ trips[0].email }}</h1>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <table class="table">
+          <tr>
+            <th>From</th>
+            <th>To</th>
+            <th>Bookings</th>
+            <th>Trip ID</th>
+          </tr>
+          {% for trip in trips %}
+          <tr>
+            <td>{{ trip.startdest }}</td>
+            <td>{{ trip.enddest }}</td>
+            <td>{{ trip.nr_bookings }}</td>
+            <td>{{ trip.trip_id }}</td>
+          </tr>
+          {% endfor %}
+        </table>
+      </div>
+    </section>
+  </main>
+
+{% endblock body %}

@@ -1,0 +1,52 @@
+{% extends "layout.html" %}
+
+{% block body %}
+
+{% include "includes/_admin_nav.html" %}
+
+  <main>
+    <section>
+      <div class="container">
+        <h1 class="display-4">Trip info</h1>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <table class="table">
+          <tr>
+            <th>From</th>
+            <th>To</th>
+            <th>Deprature</th>
+            <th>Arrival</th>
+            <th>Price</th>
+            <th>Available seats</th>
+            <th>Driver</th>
+          </tr>
+          <tr>
+            <td>{{ data.startdest }}</td>
+            <td>{{ data.enddest }}</td>
+            <td>{{ data.departure }}</td>
+            <td>{{ data.arrival }}</td>
+            <td>{{ data.price }} kr</td>
+            <td>{{ data.empty_seats }}</td>
+            <td>{{ data.firstname }} {{ data.lastname }}</td>
+          </tr>
+        </table>
+      </div>
+    </section>
+    <section>
+      <div class="container">
+        <h2 class="display-6">Change driver</h2>
+        {% from "includes/_formhelpers.html" import render_field %}
+				<form  method="POST" action="">
+          <div class="form-group col-xl-6">
+						{{ render_field(form.driver, class_="form-control") }}
+					</div>
+					<button type="submit" class="btn btn-primary form-submit-btn mt-1 mb-4">Change driver</button>
+				</form>
+      </div>
+    </section>
+  </main>
+
+{% endblock %}

@@ -3,11 +3,11 @@ from flask_bcrypt import Bcrypt
 from functools import wraps
 import forms
 import db_functions
-import destinations
 import sys
 sys.path.append("../")
 import config
 from datetime import datetime
+import helper_data
 
 
 app = Flask(__name__)
@@ -433,6 +433,7 @@ def edit_trip(trip_id):
     if "admin" not in session:
         return redirect(url_for("index"))
 
+    form = forms.EditDriver(request.form)
     if request.method == "GET":
         conn = db_functions.create_db_conn()
         cur = db_functions.create_db_cur(conn)
@@ -445,14 +446,29 @@ def edit_trip(trip_id):
         (trip_id,))
 
         data = cur.fetchone()
-
         cur.close()
         conn.close()
         print(data)
 
         if data == None:
             return redirect(url_for("our_trips"))
-        return render_template("a_trip.html", data=data)
+        return render_template("a_trip.html", data=data, form=form)
+
+    elif request.method == "POST":
+        driver = request.form["driver"]
+        conn = db_functions.create_db_conn()
+        cur = db_functions.create_db_cur(conn)
+
+        cur.execute("""UPDATE trip set driver = (
+        SELECT pers_nr from driver
+        WHERE firstname = %s AND lastname = %s)
+        WHERE trip_id = %s""",
+        (driver.split(" ")[0], driver.split(" ")[1], trip_id))
+
+        conn.commit()
+        cur.close()
+        conn.close()
+        return redirect(url_for("our_trips"))
 
 
 @app.route("/create_trip/", methods=["GET", "POST"])

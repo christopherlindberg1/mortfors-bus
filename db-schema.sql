@@ -33,7 +33,7 @@ CREATE TABLE driver
 CREATE TABLE city
 	(city_name VARCHAR(30) NOT NULL,
 	country VARCHAR(30) NOT NULL,			-- country the city belongs to
-	zip VARCHAR(10) NOT NULL,			-- ZIP code for bus stop
+	zip VARCHAR(10) NOT NULL,					-- ZIP code for bus stop
 	street VARCHAR(30) NOT NULL,			-- street address for the bus stop
 	PRIMARY KEY (city_name));
 
@@ -80,7 +80,7 @@ CREATE TABLE admin
 -- View for bookings last 365 days
 CREATE VIEW bookings_past_year as
 SELECT * FROM booking
-WHERE booking_timestamp > current_timestamp - interval '365 days'
+WHERE booking_timestamp > CURRENT_TIMESTAMP - interval '365 days'
 
 
 -- View for nr of bookings per person last 365 days

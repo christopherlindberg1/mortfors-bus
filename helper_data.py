@@ -1,4 +1,7 @@
 """ Used in registration form, and some admin-forms """
+
+import db_functions
+
 countries_data = (
     'Afghanistan',
     'Albania',
@@ -250,3 +253,13 @@ times_traveled = [
     (20, "20+"),
     (30, "30+"),
 ]
+
+
+def get_drivers_names():
+    conn = db_functions.create_db_conn()
+    cur = db_functions.create_db_cur(conn)
+    cur.execute("SELECT firstname, lastname from driver ORDER BY firstname")
+    data = cur.fetchall()
+    cur.close()
+    conn.close()
+    return [(" ".join(n), " ".join(n)) for n in data]
