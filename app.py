@@ -7,7 +7,6 @@ import sys
 sys.path.append("../")
 import config
 from datetime import datetime
-import helper_data
 
 
 app = Flask(__name__)
@@ -390,7 +389,7 @@ def our_trips():
             d.firstname, d.lastname
             FROM trip as t JOIN driver as d
             ON t.driver = d.pers_nr
-            ORDER BY startdest, enddest, departure""")
+            ORDER BY t.startdest, t.enddest, t.departure""")
             trips = cur.fetchall()
     conn.close()
     return render_template("a_trips.html", trips=trips,
@@ -402,7 +401,7 @@ def edit_trip(trip_id):
     if "admin" not in session:
         return redirect(url_for("index"))
 
-    form = forms.EditDriver(request.form)
+    form = forms.ChangeDriver(request.form)
     if request.method == "GET":
         with db_functions.create_db_conn() as conn:
             with db_functions.create_db_cur(conn) as cur:
@@ -424,11 +423,9 @@ def edit_trip(trip_id):
         driver = request.form["driver"]
         with db_functions.create_db_conn() as conn:
             with db_functions.create_db_cur(conn) as cur:
-                cur.execute("""UPDATE trip set driver = (
-                SELECT pers_nr from driver
-                WHERE firstname = %s AND lastname = %s)
+                cur.execute("""UPDATE trip set driver = %s
                 WHERE trip_id = %s""",
-                (driver.split(" ")[0], driver.split(" ")[1], trip_id))
+                (driver, trip_id))
         conn.close()
         return redirect(url_for("our_trips"))
 

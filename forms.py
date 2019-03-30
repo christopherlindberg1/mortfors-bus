@@ -2,7 +2,6 @@ from wtforms import Form, StringField, TextAreaField, PasswordField
 from wtforms import SelectField, BooleanField, IntegerField
 from wtforms.validators import Email, DataRequired, EqualTo, NumberRange
 import helper_data
-import db_functions
 
 
 class RegistrationForm(Form):
@@ -36,7 +35,7 @@ class CreateTripForm(Form):
     pass
 
 
-class EditDriver(Form):
+class ChangeDriver(Form):
     driver = SelectField(u"Driver", choices=helper_data.get_drivers_names())
 
 

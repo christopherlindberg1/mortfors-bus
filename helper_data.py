@@ -258,8 +258,8 @@ times_traveled = [
 def get_drivers_names():
     with db_functions.create_db_conn() as conn:
         with db_functions.create_db_cur(conn) as cur:
-            cur.execute("""SELECT firstname, lastname
+            cur.execute("""SELECT firstname, lastname, pers_nr
             FROM driver ORDER BY firstname""")
             data = cur.fetchall()
     conn.close()
-    return [(" ".join(n), " ".join(n)) for n in data]
+    return [(n[2], " ".join(n[0:2])) for n in data]
