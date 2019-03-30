@@ -57,14 +57,12 @@ def register():
             password = bcrypt.generate_password_hash(
                        form.password.data).decode("utf-8")
 
-            conn = db_functions.create_db_conn()
-            cur = db_functions.create_db_cur(conn)
-            cur.execute("""INSERT INTO customer VALUES
-                        (%s, %s, %s, %s, %s, %s, %s, %s, %s)""",
-                        (email, firstname, lastname, country,
-                         city, zip, street, tel_nr, password))
-            conn.commit()
-            cur.close()
+            with db_functions.create_db_conn() as conn:
+                with db_functions.create_db_cur(conn) as cur:
+                    cur.execute("""INSERT INTO customer VALUES
+                                (%s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                                (email, firstname, lastname, country,
+                                 city, zip, street, tel_nr, password))
             conn.close()
 
             session["logged_in"] = True
@@ -92,14 +90,12 @@ def login():
         email = request.form["email"]
         password_candidate = request.form["password"]
 
-        conn = db_functions.create_db_conn()
-        cur = db_functions.create_db_cur(conn)
-
-        # Pulls data about a user with a certain email, if there is one
-        cur.execute("SELECT * FROM customer WHERE email = %s",
-                             (email,))
-        data = cur.fetchone()
-        cur.close()
+        with db_functions.create_db_conn() as conn:
+            with db_functions.create_db_cur(conn) as cur:
+                # Pulls data about a user with a the submitted email
+                cur.execute("SELECT * FROM customer WHERE email = %s",
+                                     (email,))
+                data = cur.fetchone()
         conn.close()
 
         if data != None:
@@ -134,14 +130,12 @@ def admin_login():
         email = request.form["email"]
         password_candidate = request.form["password"]
 
-        conn = db_functions.create_db_conn()
-        cur = db_functions.create_db_cur(conn)
-
-        # Pulls data about an admin with a certain email, if there is one
-        cur.execute("SELECT * FROM admin WHERE email = %s",
-                             (email,))
-        data = cur.fetchone()
-        cur.close()
+        with db_functions.create_db_conn() as conn:
+            with db_functions.create_db_cur(conn) as cur:
+                # Pulls data about an admin with the submitted email
+                cur.execute("SELECT * FROM admin WHERE email = %s",
+                                     (email,))
+                data = cur.fetchone()
         conn.close()
 
         if data != None:
@@ -170,14 +164,12 @@ def logout():
 @app.route("/trips/")
 def trips():
     """ Lists all available trips """
-    conn = db_functions.create_db_conn()
-    cur = db_functions.create_db_cur(conn)
-    cur.execute("""SELECT * FROM trip WHERE empty_seats != 0
-                    ORDER BY startdest, enddest, departure""");
-    trips = cur.fetchall()
-    cur.close()
+    with db_functions.create_db_conn() as conn:
+        with db_functions.create_db_cur(conn) as cur:
+            cur.execute("""SELECT * FROM trip WHERE empty_seats != 0
+                            ORDER BY startdest, enddest, departure""");
+            trips = cur.fetchall()
     conn.close()
-
     if len(trips) != 0:
         return render_template("trips.html", trips=trips)
     return render_template("trips.html")
@@ -187,21 +179,20 @@ def trips():
 @is_logged_in
 def trip(trip_id):
     """ Shows informaion about a single trip """
-    conn = db_functions.create_db_conn()
-    cur = db_functions.create_db_cur(conn)
-
-    # Pulls all relevant data about an individual trip by trip_id
-    cur.execute("""SELECT t.trip_id, t.startdest, t.enddest, t.departure,
-    t.arrival, t.price, t.empty_seats, d.firstname, d.lastname,
-    c1.street AS startstreet, c2.street AS arrivalstreet,
-    c1.country AS startcountry, c2.country AS arrivalcountry
-    FROM trip AS t
-    JOIN city AS c1 ON t.startdest = c1.city_name
-    JOIN city AS c2 ON t.enddest = c2.city_name
-    JOIN driver AS d ON t.driver = d.pers_nr AND t.trip_id = %s""",
-    (trip_id,))
-
-    trip_info = cur.fetchone()
+    with db_functions.create_db_conn() as conn:
+        with db_functions.create_db_cur(conn) as cur:
+            # Pulls data about a specific trip
+            cur.execute("""SELECT t.trip_id, t.startdest, t.enddest,
+            t.departure, t.arrival, t.price, t.empty_seats,
+            d.firstname, d.lastname,
+            c1.street AS startstreet, c2.street AS arrivalstreet,
+            c1.country AS startcountry, c2.country AS arrivalcountry
+            FROM trip AS t
+            JOIN city AS c1 ON t.startdest = c1.city_name
+            JOIN city AS c2 ON t.enddest = c2.city_name
+            JOIN driver AS d ON t.driver = d.pers_nr AND t.trip_id = %s""",
+            (trip_id,))
+            trip_info = cur.fetchone()
 
     if trip_info == None:
         return redirect(url_for("trips"))
@@ -214,20 +205,17 @@ def trip(trip_id):
             nr_of_seats = request.form["nr_of_seats"]
             seats_left = int(trip_info["empty_seats"]) - int(nr_of_seats)
 
-            # Registers the booking
-            cur.execute("INSERT INTO booking VALUES (%s, %s, %s)",
-                        (session["email"], trip_id, nr_of_seats))
-
-            # Updates the amount of empty seats after a booking
-            cur.execute("UPDATE trip SET empty_seats = %s WHERE trip_id = %s",
-                        (seats_left, trip_id))
-
-            flash("Thank you for your booking", "success")
-
-            # Commits transaction if both queries were executed successfully
-            conn.commit()
-            cur.close()
+            with db_functions.create_db_conn() as conn:
+                with db_functions.create_db_cur(conn) as cur:
+                    # Registers the booking
+                    cur.execute("INSERT INTO booking VALUES (%s, %s, %s)",
+                                (session["email"], trip_id, nr_of_seats))
+                    # Updates the amount of empty seats after a booking
+                    cur.execute("""UPDATE trip SET empty_seats = %s
+                                   WHERE trip_id = %s""",
+                                  (seats_left, trip_id))
             conn.close()
+            flash("Thank you for your booking", "success")
             return redirect(url_for("my_bookings"))
         except:
             flash('You have already booked this trip. Go to "My bookings"\
@@ -242,21 +230,18 @@ def my_bookings():
     if "admin" in session:
         return redirect(url_for("admin_cp"))
 
-    conn = db_functions.create_db_conn()
-    cur = db_functions.create_db_cur(conn)
-
-    # Pulls information about all bookings for a certain user
-    cur.execute("""
-    SELECT t.trip_id, t.startdest, t.enddest, t.departure,
-    t.arrival, b.nr_of_seats
-    FROM trip as t
-    JOIN booking as b
-    ON b.email = %s AND t.trip_id = b.trip_id
-    ORDER BY departure""",
-    (session["email"],))
-
-    bookings = cur.fetchall()
-    cur.close()
+    with db_functions.create_db_conn() as conn:
+        with db_functions.create_db_cur(conn) as cur:
+            # Pulls information about all bookings for a certain user
+            cur.execute("""
+            SELECT t.trip_id, t.startdest, t.enddest, t.departure,
+            t.arrival, b.nr_of_seats
+            FROM trip as t
+            JOIN booking as b
+            ON b.email = %s AND t.trip_id = b.trip_id
+            ORDER BY departure""",
+            (session["email"],))
+            bookings = cur.fetchall()
     conn.close()
 
     if len(bookings) != 0:
@@ -271,21 +256,18 @@ def edit_booking(trip_id):
     if "admin" in session:
         return redirect(url_for("admin_cp"))
 
-    conn = db_functions.create_db_conn()
-    cur = db_functions.create_db_cur(conn)
-
-    # Pulls information about a specific booking
-    cur.execute("""
-    SELECT b.email, b.trip_id, b.nr_of_seats,
-    t.trip_id, t.startdest, t.enddest, t.departure,
-    t.arrival, t.price, t.empty_seats
-    FROM booking as b
-    JOIN trip as t
-    ON b.trip_id = %s AND b.trip_id = t.trip_id AND email = %s""",
-    (trip_id, session["email"]))
-
-    trip_data = cur.fetchone()
-    cur.close()
+    with db_functions.create_db_conn() as conn:
+        with db_functions.create_db_cur(conn) as cur:
+            # Pulls information about a specific booking
+            cur.execute("""
+            SELECT b.email, b.trip_id, b.nr_of_seats,
+            t.trip_id, t.startdest, t.enddest, t.departure,
+            t.arrival, t.price, t.empty_seats
+            FROM booking as b
+            JOIN trip as t
+            ON b.trip_id = %s AND b.trip_id = t.trip_id AND email = %s""",
+            (trip_id, session["email"]))
+            trip_data = cur.fetchone()
     conn.close()
 
     if request.method == "GET":
@@ -293,27 +275,24 @@ def edit_booking(trip_id):
 
     elif request.method == "POST":
         updated_nr_of_seats = int(request.form["nr_of_seats"])
-        conn = db_functions.create_db_conn()
-        cur = db_functions.create_db_cur(conn)
+        with db_functions.create_db_conn() as conn:
+            with db_functions.create_db_cur(conn) as cur:
+                # Updates a booking
+                cur.execute("""UPDATE booking SET nr_of_seats = %s,
+                last_edit_timestamp = %s WHERE email = %s
+                AND trip_id = %s""",
+                (updated_nr_of_seats, datetime.now(),
+                session["email"], trip_id))
 
-        # Updates a booking
-        cur.execute("""UPDATE booking SET nr_of_seats = %s,
-        last_edit_timestamp = %s WHERE email = %s
-        AND trip_id = %s""",
-        (updated_nr_of_seats, datetime.now(), session["email"], trip_id))
-        # Want to have current datetime without microseconds
+                diff_amount_of_seats = trip_data["nr_of_seats"]
+                - updated_nr_of_seats
+                updated_empty_seats = trip_data["empty_seats"]
+                + diff_amount_of_seats
 
-        diff_amount_of_seats = trip_data["nr_of_seats"] - updated_nr_of_seats
-        updated_empty_seats = trip_data["empty_seats"] + diff_amount_of_seats
-
-        # Updates the amount of empty seats after a booking update
-        cur.execute("""UPDATE trip SET empty_seats = %s
-        WHERE trip_id = %s""",
-        (updated_empty_seats, trip_id))
-
-        # Commits transaction if both queries were executed successfully
-        conn.commit()
-        cur.close()
+                # Updates the amount of empty seats after a booking update
+                cur.execute("""UPDATE trip SET empty_seats = %s
+                WHERE trip_id = %s""",
+                (updated_empty_seats, trip_id))
         conn.close()
         flash("Your changes has been saved", "success")
         return redirect(url_for("my_bookings"))
@@ -326,15 +305,13 @@ def cancel_booking(trip_id):
     if "admin" in session:
         return redirect(url_for("admin_cp"))
 
-    conn = db_functions.create_db_conn()
-    cur = db_functions.create_db_cur(conn)
-
-    # Pulls nr of booked seats for the booking that shall be deleted
-    cur.execute("""SELECT nr_of_seats FROM booking
-                   WHERE email = %s and trip_id = %s""",
-                   (session["email"], trip_id))
-    data = cur.fetchone()
-
+    with db_functions.create_db_conn() as conn:
+        with db_functions.create_db_cur(conn) as cur:
+            # Pulls nr of booked seats for the booking that shall be deleted
+            cur.execute("""SELECT nr_of_seats FROM booking
+                           WHERE email = %s and trip_id = %s""",
+                           (session["email"], trip_id))
+            data = cur.fetchone()
     try:
         nr_of_seats = data["nr_of_seats"]
     except TypeError:
@@ -343,18 +320,16 @@ def cancel_booking(trip_id):
         flash("You have not booked this trip", "success")
         return redirect(url_for("my_bookings"))
 
-    # Removes a user's booking
-    cur.execute("DELETE FROM booking WHERE trip_id = %s AND email = %s",
-    (trip_id, session["email"]))
-
-    # Updates the amount of available seats
-    cur.execute("""UPDATE trip SET empty_seats = empty_seats + %s
-                   WHERE trip_id = %s""",
-                   (nr_of_seats, trip_id))
-
-    # Commits transaction if the last two queries were executed successfully
-    conn.commit()
-    cur.close()
+    with db_functions.create_db_conn() as conn:
+        with db_functions.create_db_cur(conn) as cur:
+            # Removes a user's booking
+            cur.execute("""DELETE FROM booking
+                           WHERE trip_id = %s AND email = %s""",
+                           (trip_id, session["email"]))
+            # Updates the amount of available seats
+            cur.execute("""UPDATE trip SET empty_seats = empty_seats + %s
+                           WHERE trip_id = %s""",
+                           (nr_of_seats, trip_id))
     conn.close()
     flash("Your booking has been removed", "success")
     return redirect(url_for("my_bookings"))
@@ -376,11 +351,10 @@ def destinations():
 
     form = forms.AddDestinationForm(request.form)
 
-    conn = db_functions.create_db_conn()
-    cur = db_functions.create_db_cur(conn)
-    cur.execute("SELECT * FROM city ORDER BY country, city")
-    destinations = cur.fetchall()
-    cur.close()
+    with db_functions.create_db_conn() as conn:
+        with db_functions.create_db_cur(conn) as cur:
+            cur.execute("SELECT * FROM city ORDER BY country, city")
+            destinations = cur.fetchall()
     conn.close()
 
     if request.method == "GET":
@@ -393,12 +367,10 @@ def destinations():
         zip = request.form["zip"]
         street = request.form["street"].strip().title()
 
-        conn = db_functions.create_db_conn()
-        cur = db_functions.create_db_cur(conn)
-        cur.execute("INSERT INTO city VALUES (%s, %s, %s, %s)",
-                    (city_name, country, zip, street))
-        conn.commit()
-        cur.close()
+        with db_functions.create_db_conn() as conn:
+            with db_functions.create_db_cur(conn) as cur:
+                cur.execute("INSERT INTO city VALUES (%s, %s, %s, %s)",
+                            (city_name, country, zip, street))
         conn.close()
         flash(f"{city_name} has been added to your list of destinations",
                "success")
@@ -411,19 +383,16 @@ def our_trips():
     if "admin" not in session:
         return redirect(url_for("index"))
 
-    conn = db_functions.create_db_conn()
-    cur = db_functions.create_db_cur(conn)
-    cur.execute("""SELECT t.trip_id, t.startdest, t.enddest,
-    t.departure, t.arrival, t.price, t.empty_seats,
-    d.firstname, d.lastname
-    FROM trip as t JOIN driver as d
-    ON t.driver = d.pers_nr
-    ORDER BY startdest, enddest, departure""")
-    trips = cur.fetchall()
-    cur.close()
+    with db_functions.create_db_conn() as conn:
+        with db_functions.create_db_cur(conn) as cur:
+            cur.execute("""SELECT t.trip_id, t.startdest, t.enddest,
+            t.departure, t.arrival, t.price, t.empty_seats,
+            d.firstname, d.lastname
+            FROM trip as t JOIN driver as d
+            ON t.driver = d.pers_nr
+            ORDER BY startdest, enddest, departure""")
+            trips = cur.fetchall()
     conn.close()
-    print(trips)
-
     return render_template("a_trips.html", trips=trips,
             title="Our trips")
 
@@ -435,20 +404,17 @@ def edit_trip(trip_id):
 
     form = forms.EditDriver(request.form)
     if request.method == "GET":
-        conn = db_functions.create_db_conn()
-        cur = db_functions.create_db_cur(conn)
-        cur.execute("""SELECT t.startdest, t.enddest, t.departure,
-        t.arrival, t.price, t.empty_seats,
-        d.firstname, d.lastname
-        FROM trip as t JOIN driver as d
-        ON t.driver = d.pers_nr
-        WHERE t.trip_id = %s""",
-        (trip_id,))
-
-        data = cur.fetchone()
-        cur.close()
+        with db_functions.create_db_conn() as conn:
+            with db_functions.create_db_cur(conn) as cur:
+                cur.execute("""SELECT t.startdest, t.enddest,
+                t.departure, t.arrival, t.price, t.empty_seats,
+                d.firstname, d.lastname
+                FROM trip as t JOIN driver as d
+                ON t.driver = d.pers_nr
+                WHERE t.trip_id = %s""",
+                (trip_id,))
+                data = cur.fetchone()
         conn.close()
-        print(data)
 
         if data == None:
             return redirect(url_for("our_trips"))
@@ -456,17 +422,13 @@ def edit_trip(trip_id):
 
     elif request.method == "POST":
         driver = request.form["driver"]
-        conn = db_functions.create_db_conn()
-        cur = db_functions.create_db_cur(conn)
-
-        cur.execute("""UPDATE trip set driver = (
-        SELECT pers_nr from driver
-        WHERE firstname = %s AND lastname = %s)
-        WHERE trip_id = %s""",
-        (driver.split(" ")[0], driver.split(" ")[1], trip_id))
-
-        conn.commit()
-        cur.close()
+        with db_functions.create_db_conn() as conn:
+            with db_functions.create_db_cur(conn) as cur:
+                cur.execute("""UPDATE trip set driver = (
+                SELECT pers_nr from driver
+                WHERE firstname = %s AND lastname = %s)
+                WHERE trip_id = %s""",
+                (driver.split(" ")[0], driver.split(" ")[1], trip_id))
         conn.close()
         return redirect(url_for("our_trips"))
 
@@ -498,14 +460,13 @@ def customers():
 
     elif request.method == "POST":
         times_traveled = request.form["times_traveled"]
-        conn = db_functions.create_db_conn()
-        cur = db_functions.create_db_cur(conn)
-        cur.execute("""SELECT firstname, lastname, email, bookings
-        FROM nr_bookings_per_person_past_year
-        WHERE bookings >= %s""",
-        (times_traveled,))
-        customers = cur.fetchall()
-        cur.close()
+        with db_functions.create_db_conn() as conn:
+            with db_functions.create_db_cur(conn) as cur:
+                cur.execute("""SELECT firstname, lastname, email, bookings
+                FROM nr_bookings_per_person_past_year
+                WHERE bookings >= %s""",
+                (times_traveled,))
+                customers = cur.fetchall()
         conn.close()
 
         if len(customers) != 0:
@@ -521,20 +482,19 @@ def customer_page(email):
     if "admin" not in session:
         return redirect(url_for("index"))
 
-    conn = db_functions.create_db_conn()
-    cur = db_functions.create_db_cur(conn)
-    cur.execute("""SELECT c.email, c.firstname, c.lastname, t.startdest,
-    t.enddest, b.trip_id, count(b.trip_id) AS nr_bookings
-    FROM customer AS c
-    JOIN bookings_past_year AS b ON c.email = b.email
-    JOIN trip AS t ON t.trip_id = b.trip_id
-    WHERE c.email = %s
-    GROUP BY c.email, c.firstname, c.lastname, b.trip_id,
-    t.startdest, t.enddest""",
-    (email,))
-
-    trips = cur.fetchall()
-    cur.close()
+    with db_functions.create_db_conn() as conn:
+        with db_functions.create_db_cur(conn) as cur:
+            cur.execute("""SELECT c.email, c.firstname, c.lastname,
+            t.startdest, t.enddest, b.trip_id,
+            COUNT(b.trip_id) AS nr_bookings
+            FROM customer AS c
+            JOIN bookings_past_year AS b ON c.email = b.email
+            JOIN trip AS t ON t.trip_id = b.trip_id
+            WHERE c.email = %s
+            GROUP BY c.email, c.firstname, c.lastname, b.trip_id,
+            t.startdest, t.enddest""",
+            (email,))
+            trips = cur.fetchall()
     conn.close()
 
     if trips == []:
