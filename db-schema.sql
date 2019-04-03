@@ -38,9 +38,20 @@ CREATE TABLE city
 	PRIMARY KEY (city_name));
 
 
+CREATE TABLE weekly_trip
+	(startdest VARCHAR(30) NOT NULL,		-- city of the start destination
+	enddest VARCHAR(30) NOT NULL,			-- city of the end destination
+	departure TIME NOT NULL,		  		-- date and time for when the trip begins
+	arrival TIME NOT NULL,  					-- date and time for when the bus arrives
+	price INT NOT NULL,  							-- price per person
+	CONSTRAINT pk_trip PRIMARY KEY (startdest, enddest),
+	FOREIGN KEY (startdest) REFERENCES city(city_name),
+	FOREIGN KEY (enddest) REFERENCES city(city_name));
+
+
 -- All trips available for booking
-CREATE TABLE trip
-	(trip_id SERIAL,
+CREATE TABLE trip_for_booking
+	(week INT,
 	startdest VARCHAR(30) NOT NULL,		-- city of the start destination
 	enddest VARCHAR(30) NOT NULL,			-- city of the end destination
 	departure TIMESTAMP NOT NULL,  		-- date and time for when the trip begins
@@ -50,7 +61,7 @@ CREATE TABLE trip
 	driver CHAR(11),									-- driver
 	CONSTRAINT empty_seats_lower_limit CHECK(empty_seats > -1),
 	CONSTRAINT empty_seats_upper_limit CHECK(empty_seats < 61),
-	PRIMARY KEY (trip_id),
+	CONSTRAINT pk_trip_for_booking PRIMARY KEY (week, startdest, enddest),
 	FOREIGN KEY (startdest) REFERENCES city(city_name),
 	FOREIGN KEY (enddest) REFERENCES city(city_name));
 

@@ -14,7 +14,16 @@ class RegistrationForm(Form):
     street = StringField("Street", validators=[DataRequired()])
     tel_nr = StringField("Phone")
     password = PasswordField("Password", validators=[DataRequired(),
-            EqualTo("confirm", message="Fel lösenord")])
+            EqualTo("confirm", message="Password mismatch")])
+    confirm = PasswordField("Confirm password")
+
+
+class AdminRegForm(Form):
+    email = StringField("Email", validators=[Email(), DataRequired()])
+    firstname = StringField("First name", validators=[DataRequired()])
+    lastname = StringField("Last name", validators=[DataRequired()])
+    password = PasswordField("Password", validators=[DataRequired(),
+            EqualTo("confirm", message="Password mismatch")])
     confirm = PasswordField("Confirm password")
 
 
