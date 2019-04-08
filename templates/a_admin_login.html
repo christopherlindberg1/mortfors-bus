@@ -2,7 +2,7 @@
 
 {% block body %}
 
-  <main class="form-page" id="admin_login">
+  <main class="form-page" id="admin_form">
     <section>
       <div class="container">
         <h1 class="display-4">Admin log in</h1>
@@ -12,7 +12,7 @@
     <section>
       <div class="container">
         {% from "includes/_formhelpers.html" import render_field %}
-        <form method="POST" action="/admin_login/">
+        <form method="POST" action="">
           <div class="form-group">
             {{ render_field(form.email, class_="form-control") }}
           </div>

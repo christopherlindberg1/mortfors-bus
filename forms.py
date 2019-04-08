@@ -18,7 +18,7 @@ class RegistrationForm(Form):
     confirm = PasswordField("Confirm password")
 
 
-class AdminRegForm(Form):
+class AdminRegistrationForm(Form):
     email = StringField("Email", validators=[Email(), DataRequired()])
     firstname = StringField("First name", validators=[DataRequired()])
     lastname = StringField("Last name", validators=[DataRequired()])

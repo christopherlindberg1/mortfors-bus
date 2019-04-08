@@ -11,6 +11,7 @@ from datetime import datetime
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = config.secret_key
+app.config["DEBUG"] = True
 bcrypt = Bcrypt(app)
 
 
@@ -113,6 +114,41 @@ def login():
             flash("Email and password does not match",
             "danger")
             return render_template("login.html", form=form)
+
+
+@app.route("/admin_register/", methods=["GET", "POST"])
+def admin_register():
+    if "admin" not in session:
+        return redirect(url_for("index"))
+
+    form = forms.AdminRegistrationForm(request.form)
+    if request.method == "GET":
+        return render_template("a_Admin_register.html", form=form, title="Admin Account")
+
+    elif request.method == "POST":
+        try:
+            email = form.email.data
+            firstname = form.firstname.data.strip().title()
+            lastname = form.lastname.data.strip().title()
+            password = bcrypt.generate_password_hash(
+                       form.password.data).decode("utf-8")
+
+            with db_functions.create_db_conn() as conn:
+                with db_functions.create_db_cur(conn) as cur:
+                    cur.execute("""INSERT INTO admin VALUES
+                                (%s, %s, %s, %s)""",
+                                (email, firstname, lastname, password))
+            conn.close()
+
+            session["logged_in"] = True
+            session["email"] = email
+            session["admin"] = True
+
+            flash("Your account has been created", "success")
+            return redirect(url_for("admin_cp"))
+        except:
+           flash("An admin account with this email already exists", "danger")
+           return redirect(url_for("register"))
 
 
 @app.route("/admin_login/", methods=["GET", "POST"])
@@ -502,4 +538,4 @@ def customer_page(email):
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()
